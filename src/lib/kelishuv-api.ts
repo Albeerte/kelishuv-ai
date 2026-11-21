@@ -1546,6 +1546,11 @@ async function createAgreement(
     createdAt: new Date().toISOString(),
     createdBy: user.id,
     kind: input.kind,
+    templateVersion: previous
+      ? currentVersion(previous).templateVersion
+      : input.kind === "SETTLEMENT"
+        ? 2
+        : undefined,
     terms,
     participants,
     boxes: input.boxes || [],

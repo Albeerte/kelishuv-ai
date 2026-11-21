@@ -197,6 +197,7 @@ export type AgreementVersion = {
   createdAt: string;
   createdBy: string;
   kind: AgreementKind;
+  templateVersion?: 2;
   terms: AgreementTerms;
   participants: AgreementParty[];
   boxes: SignatureBox[];

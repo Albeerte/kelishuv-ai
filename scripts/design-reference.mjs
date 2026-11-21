@@ -279,7 +279,7 @@ async function main() {
   const { capturePage } = await import(pathToFileURL(path.join(repository, "lib/capture-page.mjs")));
   const { captureHover } = await import(pathToFileURL(path.join(repository, "lib/capture-hover.mjs")));
   const { captureScrollStates } = await import(pathToFileURL(path.join(repository, "lib/capture-scroll.mjs")));
-  const revision = (await run("git", ["-C", repository, "rev-parse", "HEAD"])).stdout.trim();
+  const revision = (await run("git", ["--git-dir", path.join(repository, ".git"), "rev-parse", "HEAD"])).stdout.trim();
   const browser = await launchBrowser(playwright);
   const report = {
     source: source.href, capturedAt: new Date().toISOString(), transport: "direct-browser",

@@ -15,6 +15,7 @@ import {
   Table,
   TableCell,
   TableRow,
+  TabStopType,
   TextRun,
   WidthType,
 } from "docx";
@@ -43,10 +44,18 @@ const border = rgb(0.8, 0.84, 0.88);
 const green = rgb(0.15, 0.43, 0.33);
 const statusLabel = (version: AgreementVersion) => ({ DRAFT: "Loyiha", SIGNING: "Imzolash jarayonida", SIGNED: "Imzolangan", SUPERSEDED: "Oldingi nusxa" })[version.status];
 let fontFiles: Promise<{ regular: Buffer; bold: Buffer }> | undefined;
+let formalFontFiles: Promise<{ regular: Buffer; bold: Buffer }> | undefined;
 
-type Block = { kind: "HEADING" | "BODY" | "SMALL"; text: string };
+type Block = { kind: "HEADING" | "BODY" | "SMALL" | "DETAILS"; text: string };
 
-function fonts() {
+function fonts(formal = false) {
+  if (formal) {
+    formalFontFiles ??= Promise.all([
+      readFile(path.join(process.cwd(), "public/fonts/pt-serif/PT_Serif-Web-Regular.ttf")),
+      readFile(path.join(process.cwd(), "public/fonts/pt-serif/PT_Serif-Web-Bold.ttf")),
+    ]).then(([regular, bold]) => ({ regular, bold }));
+    return formalFontFiles;
+  }
   fontFiles ??= Promise.all([
     readFile(path.join(process.cwd(), "public/fonts/inter-regular.ttf")),
     readFile(path.join(process.cwd(), "public/fonts/inter-semibold.ttf")),
@@ -134,7 +143,75 @@ function title(version: AgreementVersion) {
     : "MEDIATIV KELISHUV";
 }
 
+function agreementDate(value: string) {
+  const date = new Date(`${value}T00:00:00+05:00`);
+  if (!Number.isFinite(date.getTime())) return value;
+  return new Intl.DateTimeFormat("uz-Latn-UZ", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "Asia/Tashkent",
+  }).format(date);
+}
+
+function partyDetails(party: AgreementParty | undefined) {
+  return [
+    party?.fullName || "________________________",
+    `Shaxsni tasdiqlovchi hujjat va rekvizitlar ${party?.identityDetails || "________________________"}`,
+    `Manzil ${party?.address || "________________________"}`,
+    `Telefon ${party?.phone || "________________________"}`,
+  ];
+}
+
+function formalBlocks(version: AgreementVersion): Block[] {
+  const { terms, participants } = version;
+  const first = participants.find((party) => party.role === "FIRST_PARTY");
+  const second = participants.find((party) => party.role === "SECOND_PARTY");
+  const mediator = participants.find((party) => party.role === "MEDIATOR");
+  let number = 0;
+  const clause = (text: string): Block => ({
+    kind: "BODY",
+    text: `${++number}. ${text}`,
+  });
+  const result: Block[] = [
+    {
+      kind: "BODY",
+      text: `Bir tomondan ${first?.fullName || "________________"}, bundan buyon 1-Taraf, ikkinchi tomondan ${second?.fullName || "________________"}, bundan buyon 2-Taraf, birgalikda Taraflar, mediator ${mediator?.fullName || "________________"} ishtirokida quyidagi mediativ kelishuvni tuzdilar.`,
+    },
+    { kind: "HEADING", text: "KELISHUV PREDMETI" },
+    clause(terms.subject),
+    { kind: "HEADING", text: "KELISHUV SHARTLARI VA BAJARISH TARTIBI" },
+    clause(terms.agreedTerms),
+  ];
+  if (terms.totalAmount > 0 || terms.paymentSchedule.length) {
+    result.push(clause(`Kelishuv summasi ${money(terms.totalAmount)} ${terms.currency}.`));
+    for (const payment of terms.paymentSchedule)
+      result.push(clause(
+        `${agreementDate(payment.dueDate)} kuni ${partyName(participants, payment.payerId)} tomonidan ${partyName(participants, payment.payeeId)}ga ${money(payment.amount)} ${terms.currency} to‘lanadi. ${payment.description}`,
+      ));
+  }
+  for (const obligation of terms.obligations)
+    result.push(clause(
+      `${obligation.title}. Mas’ul ${partyName(participants, obligation.assigneeId)}. Manfaatdor taraf ${partyName(participants, obligation.beneficiaryId)}. Bajarish muddati ${agreementDate(obligation.dueDate)}.`,
+    ));
+  result.push(
+    clause(terms.responsibilities || "Taraflar kelishilgan majburiyatlarni belgilangan muddatlarda bajaradi."),
+    clause(terms.conditions || "O‘zgartirishlar taraflarning o‘zaro kelishuvi asosida rasmiylashtiriladi."),
+    clause(`Jarayon tili ${terms.language || "O‘zbek tili"}. Kelishilgan muddat ${terms.durationDays || 30} kun. Aniq boshlanish, uzaytirish va ijro bosqichidagi maxsus muddatlar mediator tomonidan tekshiriladi.`),
+    clause(`Xizmat haqi va xarajatlar. ${terms.feeTerms || "Taraflar bilan alohida yozma kelishiladi."}`),
+    clause(`Maxfiylik. ${terms.confidentiality || "Taraf ma’lumoti uning roziligi bilan ulashiladi."}`),
+    { kind: "HEADING", text: "IXTIYORIY ROZILIK VA RASMIYLASHTIRISH" },
+    clause("Taraflar hujjatning to‘liq mazmuni bilan tanishib, o‘z hisoblaridan mustaqil va ixtiyoriy rozilik bildiradi. Mediator jarayon hamda kelishuvni ko‘rib chiqadi va o‘z tasdig‘ini qayd etadi."),
+    clause("Imzolash usuli qo‘lda chizilgan imzo. Hisob, vaqt, hujjat nusxasi va mazmun xeshi qayd etiladi. ERI va shaxsni tekshirish usulining holati platformada alohida ko‘rsatiladi. Huquqiy rasmiylashtirish tegishli qonunchilik va malakali mediator tomonidan baholanadi."),
+    ...metadataBlocks(version),
+    { kind: "HEADING", text: "TARAFLARNING REKVIZITLARI" },
+    { kind: "DETAILS", text: "" },
+  );
+  return result;
+}
+
 function blocks(version: AgreementVersion): Block[] {
+  if (version.templateVersion === 2) return formalBlocks(version);
   const { terms, participants } = version;
   const result: Block[] = [
     { kind: "HEADING", text: "1. Taraflar va mediator" },
@@ -225,11 +302,22 @@ function blocks(version: AgreementVersion): Block[] {
       text: "Imzolash usuli qo‘lda chizilgan imzo. Hisob, vaqt, hujjat nusxasi va mazmun xeshi qayd etiladi. ERI va shaxsni tekshirish usulining holati platformada alohida ko‘rsatiladi. Huquqiy rasmiylashtirish tegishli qonunchilik va malakali mediator tomonidan baholanadi.",
     },
   );
-  const sources = terms.sourceIds
+  result.push(...metadataBlocks(version));
+  return result;
+}
+
+function metadataBlocks(version: AgreementVersion): Block[] {
+  const result: Block[] = [];
+  const sources = version.terms.sourceIds
     .map((id) => LEGAL_SOURCES.find((source) => source.id === id))
     .filter((source) => Boolean(source));
   if (sources.length) {
-    result.push({ kind: "HEADING", text: "8. Tekshirilgan huquqiy manbalar" });
+    result.push({
+      kind: "HEADING",
+      text: version.templateVersion === 2
+        ? "HUQUQIY MANBALAR"
+        : "8. Tekshirilgan huquqiy manbalar",
+    });
     for (const source of sources) {
       result.push({
         kind: "SMALL",
@@ -362,6 +450,9 @@ async function drawSignatures(
   bold: PDFFont,
   images: Partial<Record<SignerRole, Uint8Array>>,
 ) {
+  const formal = version.templateVersion === 2;
+  const ink = formal ? rgb(0, 0, 0) : navy;
+  const lineColor = formal ? rgb(0.2, 0.2, 0.2) : border;
   for (const box of boxes) {
     const page = pages[box.page];
     const width = box.width * PAGE_WIDTH;
@@ -375,16 +466,16 @@ async function drawSignatures(
       y: PAGE_HEIGHT - top - height,
       width,
       height,
-      borderColor: border,
+      borderColor: lineColor,
       borderWidth: 0.6,
-      color: rgb(0.985, 0.99, 0.995),
+      color: formal ? rgb(1, 1, 1) : rgb(0.985, 0.99, 0.995),
     });
     page.drawText(ROLE_LABELS[box.role], {
       x: x + 7,
       y: PAGE_HEIGHT - top - 13,
       font: bold,
       size: 8,
-      color: navy,
+      color: ink,
     });
     const nameLines = wrap(
       party?.fullName || "To‘ldiriladi",
@@ -398,7 +489,7 @@ async function drawSignatures(
         y: PAGE_HEIGHT - top - 25 - index * 9,
         font: bold,
         size: 7.4,
-        color: navy,
+        color: ink,
       }),
     );
     const imageBytes = images[box.role];
@@ -427,20 +518,20 @@ async function drawSignatures(
         y: PAGE_HEIGHT - top - height + 14,
         font: regular,
         size: 6.8,
-        color: green,
+        color: formal ? ink : green,
       });
       page.drawText("Qo‘lda imzo qayd etilgan", {
         x: x + 7,
         y: PAGE_HEIGHT - top - height + 5,
         font: regular,
         size: 6.2,
-        color: green,
+        color: formal ? ink : green,
       });
     } else {
       page.drawLine({
         start: { x: x + 10, y: PAGE_HEIGHT - top - height + 31 },
         end: { x: x + width - 10, y: PAGE_HEIGHT - top - height + 31 },
-        color: border,
+        color: lineColor,
         thickness: 0.5,
       });
       page.drawText("Imzolash kutilmoqda", {
@@ -448,7 +539,7 @@ async function drawSignatures(
         y: PAGE_HEIGHT - top - height + 12,
         font: regular,
         size: 7,
-        color: muted,
+        color: formal ? ink : muted,
       });
     }
   }
@@ -460,7 +551,33 @@ async function makeDocx(
   content: Block[],
   images: Partial<Record<SignerRole, Uint8Array>>,
 ) {
-  const children: (Paragraph | Table)[] = [
+  const formal = version.templateVersion === 2;
+  const textColor = formal ? "000000" : "20344B";
+  const smallColor = formal ? "000000" : "64748B";
+  const tableBorderColor = formal ? "000000" : "D5DFE8";
+  const textSizes = { HEADING: 22, BODY: formal ? 22 : 20, SMALL: 16 };
+  const children: (Paragraph | Table)[] = formal ? [
+    new Paragraph({
+      style: "Title",
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text: title(version), bold: true, size: 24, color: "000000" })],
+      spacing: { after: 180 },
+      keepNext: true,
+    }),
+    new Paragraph({
+      tabStops: [{ type: TabStopType.RIGHT, position: 9986 }],
+      children: [new TextRun({ text: `${version.terms.place}\t${agreementDate(version.terms.date)}`, bold: true, size: 21 })],
+      spacing: { after: 160 },
+      keepNext: true,
+    }),
+    new Paragraph({
+      children: [new TextRun({
+        text: `Kelishuv ${agreementId}. ${version.number}-nusxa. ${statusLabel(version)}.`,
+        size: 16, color: "000000",
+      })],
+      spacing: { after: 120 },
+    }),
+  ] : [
     new Paragraph({
       children: [
         new TextRun({
@@ -492,28 +609,68 @@ async function makeDocx(
     }),
   ];
   for (const block of content) {
+    if (block.kind === "DETAILS") {
+      const rows: SignerRole[][] = [["FIRST_PARTY", "SECOND_PARTY"], ["MEDIATOR"]];
+      for (const roles of rows) {
+        const columns = roles.map(role => [
+          ROLE_LABELS[role],
+          ...partyDetails(version.participants.find(party => party.role === role)),
+        ]);
+        const keepTogether = columns.every(column => column.join(" ").length <= 700);
+        children.push(new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        columnWidths: [4993, 4993],
+        borders: {
+          top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+          bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+          left: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+          right: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+          insideHorizontal: { style: BorderStyle.NONE, size: 0, color: "000000" },
+          insideVertical: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+        },
+        rows: columns[0].map((_, row) => new TableRow({
+          tableHeader: row === 0,
+          cantSplit: false,
+          children: roles.map((role, column) => new TableCell({
+            columnSpan: roles.length === 1 ? 2 : 1,
+            width: { size: 100 / roles.length, type: WidthType.PERCENTAGE },
+            margins: { top: 90, bottom: 90, left: 110, right: 110 },
+            children: [new Paragraph({
+              alignment: row === 0 ? AlignmentType.CENTER : AlignmentType.LEFT,
+              children: [new TextRun({ text: clean(columns[column][row]), bold: row === 0 })],
+              spacing: { after: 25, line: 250 },
+              keepNext: row === 0 || (keepTogether && row < columns[column].length - 1),
+            })],
+          })),
+        })),
+        }));
+        children.push(new Paragraph({
+          children: [new TextRun({ text: "", size: 2 })],
+          spacing: { after: 40, line: 20 },
+        }));
+      }
+      continue;
+    }
     const paragraphs = clean(block.text).split("\n");
     for (const line of paragraphs) {
       children.push(
         new Paragraph({
+          alignment: formal && block.kind === "HEADING"
+            ? AlignmentType.CENTER
+            : formal && block.kind === "BODY" ? AlignmentType.JUSTIFIED : AlignmentType.LEFT,
           children: [
             new TextRun({
               text: line,
               bold: block.kind === "HEADING",
-              size:
-                block.kind === "SMALL"
-                  ? 16
-                  : block.kind === "HEADING"
-                    ? 22
-                    : 20,
-              color: block.kind === "SMALL" ? "64748B" : "20344B",
+              size: textSizes[block.kind],
+              color: block.kind === "SMALL" ? smallColor : textColor,
             }),
           ],
           keepNext: block.kind === "HEADING",
           spacing: {
-            before: block.kind === "HEADING" ? 190 : 0,
-            after: block.kind === "SMALL" ? 70 : 115,
-            line: 280,
+            before: block.kind === "HEADING" ? formal ? 140 : 190 : 0,
+            after: block.kind === "SMALL" ? 70 : formal ? 75 : 115,
+            line: formal ? 260 : 280,
           },
         }),
       );
@@ -521,14 +678,15 @@ async function makeDocx(
   }
   children.push(
     new Paragraph({
-      text: "Taraflarning imzolari va mediator tasdig‘i",
-      pageBreakBefore: true,
+      pageBreakBefore: !formal,
+      alignment: formal ? AlignmentType.CENTER : AlignmentType.LEFT,
+      keepNext: true,
       spacing: { after: 220 },
       children: [
         new TextRun({
-          text: "Taraflarning imzolari va mediator tasdig‘i",
+          text: formal ? "TARAFLARNING IMZOLARI VA MEDIATOR TASDIG‘I" : "Taraflarning imzolari va mediator tasdig‘i",
           bold: true,
-          size: 25,
+          size: formal ? 22 : 25,
         }),
       ],
     }),
@@ -575,7 +733,7 @@ async function makeDocx(
             new TextRun({
               text: "Qo‘lda imzo qayd etilgan",
               size: 16,
-              color: "267351",
+              color: formal ? "000000" : "267351",
             }),
           ],
         }),
@@ -597,31 +755,40 @@ async function makeDocx(
     new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       borders: {
-        top: { style: BorderStyle.SINGLE, size: 3, color: "D5DFE8" },
-        bottom: { style: BorderStyle.SINGLE, size: 3, color: "D5DFE8" },
-        left: { style: BorderStyle.SINGLE, size: 3, color: "D5DFE8" },
-        right: { style: BorderStyle.SINGLE, size: 3, color: "D5DFE8" },
-        insideVertical: { style: BorderStyle.SINGLE, size: 3, color: "D5DFE8" },
+        top: { style: BorderStyle.SINGLE, size: 3, color: tableBorderColor },
+        bottom: { style: BorderStyle.SINGLE, size: 3, color: tableBorderColor },
+        left: { style: BorderStyle.SINGLE, size: 3, color: tableBorderColor },
+        right: { style: BorderStyle.SINGLE, size: 3, color: tableBorderColor },
+        insideVertical: { style: BorderStyle.SINGLE, size: 3, color: tableBorderColor },
       },
-      rows: [new TableRow({ children: cells })],
+      rows: [new TableRow({ children: cells, cantSplit: formal })],
     }),
   );
   children.push(
     new Paragraph({
-      text: `Mazmun SHA-256 ${version.contentHash}`,
+      children: [new TextRun({
+        text: `Mazmun SHA-256 ${version.contentHash}`,
+        size: 16, color: formal ? "000000" : "64748B",
+      })],
       spacing: { before: 240 },
-      style: "Caption",
+      style: formal ? undefined : "Caption",
     }),
   );
+  const embeddedFonts = formal ? await fonts(true) : undefined;
   const doc = new Document({
     creator: "KELISHUV AI",
     lastModifiedBy: "KELISHUV AI",
     title: title(version),
     subject: clean(version.terms.subject),
     revision: version.number,
+    fonts: embeddedFonts ? [{
+      name: "PT Serif", data: embeddedFonts.regular, bold: embeddedFonts.bold,
+    }] : undefined,
     styles: {
       default: {
-        document: { run: { font: "Inter", size: 20, color: "20344B" } },
+        document: {
+          run: { font: formal ? "PT Serif" : "Inter", size: formal ? 22 : 20, color: textColor },
+        },
       },
     },
     sections: [
@@ -641,12 +808,12 @@ async function makeDocx(
                   new TextRun({
                     text: `KELISHUV AI | Nusxa ${version.number} | `,
                     size: 16,
-                    color: "64748B",
+                    color: smallColor,
                   }),
                   new TextRun({
                     children: [PageNumber.CURRENT],
                     size: 16,
-                    color: "64748B",
+                    color: smallColor,
                   }),
                 ],
               }),
@@ -674,11 +841,21 @@ export async function renderAgreementFiles({
   pageCount: number;
   boxes: SignatureBox[];
 }> {
-  const data = await fonts();
+  const formal = version.templateVersion === 2;
+  const data = await fonts(formal);
+  const ink = formal ? rgb(0, 0, 0) : navy;
+  const quiet = formal ? rgb(0.28, 0.28, 0.28) : muted;
+  const textSizes = { HEADING: formal ? 10.5 : 10, BODY: formal ? 11 : 9.4, SMALL: 7.7 };
   const document = await PDFDocument.create();
   document.registerFontkit(fontkit);
   const regular = await document.embedFont(data.regular, { subset: true });
   const bold = await document.embedFont(data.bold, { subset: true });
+  const placeLines = formal
+    ? wrap(version.terms.place.replace(/\s+/g, " "), bold, 10, BODY_WIDTH * 0.58)
+    : [];
+  const metadata = formal
+    ? wrap(`Kelishuv ${agreementId}. ${version.number}-nusxa. ${statusLabel(version)}.`, regular, 7.5, BODY_WIDTH)
+    : [];
   const createdAt = new Date(version.createdAt);
   if (!Number.isFinite(createdAt.getTime()))
     throw new Error("Hujjat yaratilgan vaqt noto‘g‘ri.");
@@ -696,6 +873,29 @@ export async function renderAgreementFiles({
   function newPage() {
     page = document.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     pages.push(page);
+    if (formal) {
+      const heading = safeText(title(version), bold);
+      page.drawText(heading, {
+        x: (PAGE_WIDTH - bold.widthOfTextAtSize(heading, 12)) / 2,
+        y: PAGE_HEIGHT - 45, font: bold, size: 12, color: ink,
+      });
+      const date = safeText(agreementDate(version.terms.date), bold);
+      const headerPlace = placeLines.slice(0, 2);
+      headerPlace.forEach((line, index) => page.drawText(line, {
+        x: LEFT, y: PAGE_HEIGHT - 69 - index * 12, font: bold, size: 10, color: ink,
+      }));
+      page.drawText(date, {
+        x: PAGE_WIDTH - LEFT - bold.widthOfTextAtSize(date, 10),
+        y: PAGE_HEIGHT - 69, font: bold, size: 10, color: ink,
+      });
+      const metadataTop = 85 + Math.max(0, headerPlace.length - 1) * 12;
+      const headerMetadata = metadata.slice(0, 2);
+      headerMetadata.forEach((line, index) => page.drawText(line, {
+        x: LEFT, y: PAGE_HEIGHT - metadataTop - index * 10, font: regular, size: 7.5, color: quiet,
+      }));
+      cursor = metadataTop + 21 + Math.max(0, headerMetadata.length - 1) * 10;
+      return;
+    }
     page.drawText("KELISHUV AI", {
       x: LEFT,
       y: PAGE_HEIGHT - 43,
@@ -726,40 +926,105 @@ export async function renderAgreementFiles({
     });
     cursor += 12;
   }
+  function drawDetails() {
+    const rows: SignerRole[][] = [["FIRST_PARTY", "SECOND_PARTY"], ["MEDIATOR"]];
+    for (const roles of rows) {
+      const width = BODY_WIDTH / roles.length;
+      const columns = roles.map(role => [
+        ROLE_LABELS[role],
+        ...partyDetails(version.participants.find(party => party.role === role))
+          .flatMap(text => wrap(text, regular, 9.5, width - 18)),
+      ]);
+      const lineCount = Math.max(...columns.map(lines => lines.length));
+      let offset = 0;
+      while (offset < lineCount) {
+        if (cursor + 65 > BODY_BOTTOM) newPage();
+        const continued = offset > 0;
+        const headerLines = continued ? 1 : 0;
+        const count = Math.min(lineCount - offset, Math.floor((BODY_BOTTOM - cursor - 16) / 12) - headerLines);
+        const height = (count + headerLines) * 12 + 16;
+        columns.forEach((lines, column) => {
+          const x = LEFT + column * width;
+          page!.drawRectangle({
+            x, y: PAGE_HEIGHT - cursor - height, width, height,
+            borderColor: ink, borderWidth: 0.5,
+          });
+          const fragment = lines.slice(offset, offset + count);
+          if (continued) fragment.unshift(ROLE_LABELS[roles[column]]);
+          fragment.forEach((line, index) => {
+            const heading = index === 0;
+            const font = heading ? bold : regular;
+            const size = heading ? 10 : 9.5;
+            page!.drawText(line, {
+              x: heading ? x + (width - font.widthOfTextAtSize(line, size)) / 2 : x + 9,
+              y: PAGE_HEIGHT - cursor - 15 - index * 12,
+              font, size, color: ink,
+            });
+          });
+        });
+        offset += count;
+        cursor += height;
+      }
+      cursor += 8;
+    }
+  }
   newPage();
   const content: Block[] = [
-    {
+    ...(!formal ? [{
       kind: "SMALL",
       text: `Kelishuv ${agreementId}. Joy ${version.terms.place}.`,
-    },
+    } as Block] : []),
+    ...(formal && placeLines.length > 2 ? [{
+      kind: "SMALL",
+      text: `Tuzilgan joy ${version.terms.place.replace(/\s+/g, " ")}`,
+    } as Block] : []),
+    ...(formal && metadata.length > 2 ? [{
+      kind: "SMALL",
+      text: metadata.join(" "),
+    } as Block] : []),
     ...blocks(version),
   ];
-  for (const block of content) {
+  for (const [blockIndex, block] of content.entries()) {
+    if (block.kind === "DETAILS") {
+      drawDetails();
+      continue;
+    }
     const font = block.kind === "HEADING" ? bold : regular;
-    const size =
-      block.kind === "SMALL" ? 7.7 : block.kind === "HEADING" ? 10 : 9.4;
-    const leading = block.kind === "SMALL" ? 11.2 : 14.1;
+    const size = textSizes[block.kind];
+    const leading = block.kind === "SMALL" ? 11.2 : formal ? 13.4 : 14.1;
     const lines = wrap(block.text, font, size, BODY_WIDTH);
     const before = block.kind === "HEADING" ? 11 : 0;
+    const nextBlockHeight = formal && content[blockIndex + 1]?.kind === "DETAILS" ? 65 : 0;
     if (
       cursor +
         before +
         leading *
-          Math.min(lines.length + (block.kind === "HEADING" ? 2 : 0), 3) >
+          Math.min(lines.length + (block.kind === "HEADING" ? 2 : 0), 3) + nextBlockHeight >
       BODY_BOTTOM
     )
       newPage();
     cursor += before;
-    for (const line of lines) {
+    for (const [lineIndex, line] of lines.entries()) {
       if (cursor + leading > BODY_BOTTOM) newPage();
-      if (line)
-        page!.drawText(line, {
-          x: LEFT,
+      if (line) {
+        const words = line.split(" ");
+        const justify = formal && block.kind === "BODY" && lineIndex < lines.length - 1 &&
+          words.length > 1 && font.widthOfTextAtSize(line, size) > BODY_WIDTH * 0.7;
+        if (justify) {
+          const gap = (BODY_WIDTH - words.reduce((sum, word) => sum + font.widthOfTextAtSize(word, size), 0)) / (words.length - 1);
+          let x = LEFT;
+          for (const word of words) {
+            page!.drawText(word, { x, y: PAGE_HEIGHT - cursor, font, size, color: ink });
+            x += font.widthOfTextAtSize(word, size) + gap;
+          }
+        } else page!.drawText(line, {
+          x: formal && block.kind === "HEADING" ? LEFT + (BODY_WIDTH - font.widthOfTextAtSize(line, size)) / 2 : LEFT,
           y: PAGE_HEIGHT - cursor,
           font,
           size,
-          color: block.kind === "SMALL" ? muted : navy,
+          color: block.kind === "SMALL" ? quiet : ink,
         });
+      }
       cursor += leading;
     }
     cursor += block.kind === "HEADING" ? 4 : 7;
@@ -768,6 +1033,15 @@ export async function renderAgreementFiles({
     ? structuredClone(version.boxes)
     : defaultBoxes(pages.length - 1);
   validateSignatureBoxes(boxes, pages.length);
+  if (formal) {
+    const heading = "TARAFLARNING IMZOLARI VA MEDIATOR TASDIG‘I";
+    const pageBoxes = boxes.filter(box => box.page === boxes[0].page);
+    pages[boxes[0].page].drawText(heading, {
+      x: (PAGE_WIDTH - bold.widthOfTextAtSize(heading, 9.5)) / 2,
+      y: PAGE_HEIGHT - Math.min(...pageBoxes.map(box => box.y)) * PAGE_HEIGHT + 16,
+      font: bold, size: 9.5, color: ink,
+    });
+  }
   await drawSignatures(
     document,
     pages,
@@ -781,19 +1055,19 @@ export async function renderAgreementFiles({
     item.drawLine({
       start: { x: LEFT, y: 38 },
       end: { x: PAGE_WIDTH - LEFT, y: 38 },
-      color: border,
+      color: formal ? quiet : border,
       thickness: 0.5,
     });
     item.drawText(
       `KELISHUV AI | ${version.number}-nusxa | ${index + 1} / ${pages.length}`,
-      { x: LEFT, y: 24, font: regular, size: 7, color: muted },
+      { x: LEFT, y: 24, font: regular, size: 7, color: quiet },
     );
     item.drawText("Qo‘lda chizilgan imzo va audit qaydi", {
       x: PAGE_WIDTH - LEFT - 180,
       y: 24,
       font: regular,
       size: 7,
-      color: muted,
+      color: quiet,
     });
   });
   const [pdf, docx] = await Promise.all([

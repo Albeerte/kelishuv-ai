@@ -119,3 +119,16 @@ SMS, haqiqiy biometrik tekshiruv, Payme va Zoom servis sinovlari biznes hisoblar
 - Sinov yozuvlari aniq identifikatorlar bo‘yicha tozalandi. Boshqa yozuvlarning joriy holati va audit zanjiri tekshirildi. Lokal bazadagi mavjud yozuvlar saqlandi.
 
 Jonli huquqiy qidiruv va sud materiallari qamrovi [yordamchi manbalari](ASSISTANT_DATA_SOURCES.md) hujjatida ko‘rsatilgan. Tekshiruv keng qamrovli huquqiy benchmark sifatida baholanmagan.
+
+
+## GitHub va LexHackathon materiallari, 2026-yil 21-noyabr
+
+- Asosiy HEAD nusxasida 59 test o‘tdi. Yangilangan nusxada 64 test o‘tdi.
+- Rasmiy mediativ kelishuv shabloni, uzun rekvizitlar, shriftlar va avvalgi hujjat xeshlari tekshirildi.
+- Alohida sahifalardagi imzo bloklari uchun sarlavha joylashuvi regressiya testi dastlab xatoni takrorladi. Tuzatishdan so‘ng shu test va to‘liq to‘plam o‘tdi.
+- ESLint va TypeScript tekshiruvlari xatosiz yakunlandi.
+- Sakkiz slaydli PPTX qayta import qilindi. Izohlar, 180 soniyalik vaqt taqsimoti, jadval va hisoblar tekshirildi. Paket va joylashuv validatorlari xato hamda ogohlantirish qaytarmadi.
+- Public materiallarda yangi taqdimot, slayd rasmlari, biznes dalillari va FastAPI/Qdrant sxemasining konfiguratsiya holati berilgan.
+- Production build alohida ishchi nusxada o‘tdi. Ishlab turgan namoyish yig‘masi ushbu tekshiruvda almashtirilmadi.
+- Dizayn ekstraktorining 9 regressiyasi o‘tdi. Metadata buzilgan holatda Git manbasini aniq katalogdan tekshirish qo‘shildi.
+- Yakuniy mustaqil kod ko‘rigi bloklovchi xavfsizlik yoki mantiq xatosi topmadi. Production dependency auditida 0 zaiflik qaytdi.

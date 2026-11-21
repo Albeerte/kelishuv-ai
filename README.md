@@ -8,6 +8,14 @@ O‘zbekiston uchun mahalliy mediatsiya va nizolarni hal qilish platformasi. Ilo
 
 Muallif va loyiha egasi Abduxoliq Solijonov. Manba kodi private repozitoriyda saqlanadi. Public taqdimotda interfeys rasmlari, tizim arxitekturasi, lokal model va loyiha haqida ma’lumot berilgan. Namoyish havolasi kompyuter va tunnel ishlayotgan paytda faol.
 
+## LexHackathon 2026 taqdimoti
+
+[3 daqiqalik PowerPoint](docs/presentation/Kelishuv-LexHackathon-2026.pptx) · [PDF ko‘rinishi](docs/presentation/Kelishuv-LexHackathon-2026.pdf) · [Biznes modeli va manbalar](docs/PITCH_EVIDENCE.md)
+
+Taqdimot shablondagi sakkiz mavzuni qamraydi. Nutq matni PowerPoint izohlarida 180 soniyaga taqsimlangan. Muammo bayoni loyiha egasining qariyb 10 mediator bilan dastlabki suhbatlari, bozor dalillari esa Oliy sud va Adliya vazirligi manbalariga tayangan. Taqdim etilgan xakaton qoidalarida final uchun 3 daqiqa nutq, 2 daqiqa demo va 2 daqiqa savol-javob belgilangan.
+
+Bozor ssenariylari, namunaviy gonorar, xarajat va pilot hajmlari tekshiriladigan faraz yoki maqsad sifatida berilgan. Boshlang‘ich model mediator belgilaydigan narx va 15% platforma ulushiga asoslanadi.
+
 ## Interfeys
 
 Kabinetda asosiy amal “Yangi muammo boshlash” tugmasidir. Yirik matn, yashil brend, iliq fon va bosqichli jarayon foydalanuvchiga keyingi qadamni ko‘rsatadi. Ekran rasmlari ilovaning haqiqiy interfeysidan, namunaviy ma’lumotlar bilan olingan.
@@ -95,6 +103,12 @@ PDF matni dastlabki 15 sahifadan olinadi. Skan OCR dastlabki ikki sahifani ishla
 
 [Arxitekturaning lokal ochiladigan varianti](docs/media/architecture.html)
 
+### FastAPI va Qdrant bilan kengaytirish varianti
+
+![Loyiha egasi taqdim etgan FastAPI va Qdrant arxitektura sxemasi](docs/media/architecture-fastapi-reference.png)
+
+Sxema ixtiyoriy FastAPI/Qdrant yo‘lini tasvirlaydi. Joriy MVPning asosiy API va saqlash jarayoni Next.js serverida, model so‘rovlari Ollama orqali ishlaydi. PostgreSQL, FastAPI/Qdrant va OCR qatlamlari tegishli konfiguratsiya hamda servislar bilan ulanadi.
+
 Next.js 15.5.29, React 18.3, TypeScript, Tailwind, Radix, Zustand, NextAuth va Prisma mavjud asos sifatida kengaytirildi. Asosiy API `src/app/api/[...path]/route.ts`, yangi oqim `src/lib/kelishuv-api.ts` ichida joylashgan. AI, dalil ekstraksiyasi, PDF/DOCX va ijro alohida modullardir.
 
 Yozuvlar `.data/medimatch.enc`, hujjatlar `.data/documents/` ichida AES-256-GCM bilan shifrlanadi. Kalit `.data/encryption.key` yoki `DATA_ENCRYPTION_KEY` orqali olinadi. Zaxirada kalit va ma’lumot birga saqlanishi kerak. Parollar noyob salt bilan scrypt orqali xeshlanadi. `.data/` va mahalliy muhit fayllari Gitdan chiqarilgan.
@@ -153,7 +167,7 @@ npm run build
 npm audit
 ```
 
-Saqlangan 59 ta regressiya testi maxfiylik, AI dispatch ruxsati, audit, hujjat chegaralari, to‘lov qayta urinishlari, shaxsni tekshirish callbacklari, SMS yuborish, Zoom tiklash, takliflar, RAG manbalari, raqamli da’volar, bepul limit va nizoni yopishni qamraydi. Ngrok orqali ikki tarafli taklif va yopish jarayoni, haqiqiy lokal RAG javobi hamda 10 ta so‘rov limiti tekshirildi. Uchta yangi avtomatik WCAG auditida xato qaytmadi. `npm run test:design` to‘qqizta ekstraktor regressiyasini tekshiradi. API va brauzer natijalari [VERIFICATION.md](docs/VERIFICATION.md) hujjatida qayd etilgan.
+Saqlangan 64 ta regressiya testi maxfiylik, AI dispatch ruxsati, audit, hujjat chegaralari, to‘lov qayta urinishlari, shaxsni tekshirish callbacklari, SMS yuborish, Zoom tiklash, takliflar, RAG manbalari, raqamli da’volar, bepul limit va nizoni yopishni qamraydi. Ngrok orqali ikki tarafli taklif va yopish jarayoni, haqiqiy lokal RAG javobi hamda 10 ta so‘rov limiti tekshirildi. Uchta yangi avtomatik WCAG auditida xato qaytmadi. `npm run test:design` to‘qqizta ekstraktor regressiyasini tekshiradi. API va brauzer natijalari [VERIFICATION.md](docs/VERIFICATION.md) hujjatida qayd etilgan.
 
 ## Tadqiqot va reja
 

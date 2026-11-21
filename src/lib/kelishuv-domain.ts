@@ -148,6 +148,9 @@ export function privateReviewInputHash(record: CaseRecord, userId: string) {
 export function agreementContentHash(version: AgreementVersion) {
   return digest(
     JSON.stringify({
+      ...(version.templateVersion
+        ? { templateVersion: version.templateVersion }
+        : {}),
       kind: version.kind,
       terms: version.terms,
       participants: version.participants,

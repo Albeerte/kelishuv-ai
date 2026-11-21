@@ -267,6 +267,138 @@ test("PDF render and signature layout work with Cyrillic text", async () => {
   await assert.rejects(documents.validateSignaturePng(blank));
 });
 
+async function agreementPdfText(buffer) {
+  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const loading = getDocument({ data: new Uint8Array(buffer), useSystemFonts: false });
+  const document = await loading.promise;
+  try {
+    const pages = [];
+    for (let page = 1; page <= document.numPages; page++) {
+      const content = await (await document.getPage(page)).getTextContent();
+      pages.push(content.items.map(item => item.str || "").join(" "));
+    }
+    return pages.join("\n");
+  } finally {
+    await loading.destroy();
+  }
+}
+
+test("formal settlement template includes numbered terms, requisites and embedded serif fonts", async () => {
+  const version = {
+    id: "formal-version", number: 1, createdAt: "2026-11-21T04:00:00Z",
+    kind: "SETTLEMENT", templateVersion: 2,
+    terms: { ...terms, subject: "Қарз бўйича ўзаро келишув", totalAmount: 20000000,
+      paymentSchedule: [{ id: "pay", amount: 20000000, dueDate: "2026-12-21", payerId: "b", payeeId: "a", description: "Qarz qoldig‘i" }] },
+    participants: participants.map(party => ({ ...party, address: "Samarqand shahri", identityDetails: `TEST-REKVIZIT-${party.userId}`, phone: "+998900000000" })),
+    boxes: [], contentHash: "0".repeat(64), status: "DRAFT", signatures: [], validation: [], reviews: [],
+  };
+  const files = await documents.renderAgreementFiles({ agreementId: "formal", version });
+  const text = await agreementPdfText(files.pdf);
+  for (const phrase of ["MEDIATIV KELISHUV", "KELISHUV PREDMETI", "KELISHUV SHARTLARI VA BAJARISH TARTIBI", "TARAFLARNING REKVIZITLARI", "TEST-REKVIZIT-a", "TEST-REKVIZIT-b", "TEST-REKVIZIT-m", "20 000 000", "Қарз бўйича ўзаро келишув"])
+    assert.ok(text.includes(phrase), phrase);
+  assert.ok(files.boxes.every(box => box.page === files.pageCount - 1));
+  const zip = await JSZip.loadAsync(files.docx);
+  const xml = await zip.file("word/document.xml").async("string");
+  assert.match(xml, /TARAFLARNING REKVIZITLARI/);
+  assert.match(xml, /w:gridSpan w:val="2"/);
+  assert.match(xml, /w:pStyle w:val="Title"/);
+  assert.equal(xml.match(/TARAFLARNING IMZOLARI VA MEDIATOR TASDIG‘I/g).length, 1);
+  assert.match(await zip.file("word/fontTable.xml").async("string"), /embedBold/);
+  assert.equal(Object.keys(zip.files).filter(name => /word\/fonts\/.*\.odttf$/.test(name)).length, 2);
+  const canvas = createCanvas(900, 360), context = canvas.getContext("2d");
+  context.strokeStyle = "#111111"; context.lineWidth = 5;
+  context.beginPath(); context.moveTo(40, 230); context.bezierCurveTo(180, 20, 360, 320, 790, 100); context.stroke();
+  const image = canvas.toBuffer("image/png");
+  const signed = await documents.renderAgreementFiles({ agreementId: "formal", version: { ...version, boxes: files.boxes, status: "SIGNED", signatures: participants.map(party => ({ ...party, signedAt: "2026-11-21T04:10:00Z" })) }, signatureImages: { FIRST_PARTY: image, SECOND_PARTY: image, MEDIATOR: image } });
+  assert.equal(signed.pageCount, files.pageCount);
+  assert.deepEqual(signed.boxes, files.boxes);
+  assert.equal((await agreementPdfText(signed.pdf)).match(/Qo‘lda imzo qayd etilgan/g).length, 3);
+});
+
+test("formal requisites paginate long fields without losing text", async () => {
+  const version = {
+    id: "long-formal", number: 1, createdAt: "2026-11-21T04:00:00Z", kind: "SETTLEMENT", templateVersion: 2,
+    terms: { ...terms, agreedTerms: Array(15).fill("Taraflar hujjatlar va bajarish muddatlarini o‘zaro kelishib belgilaydi.").join(" "), place: "Samarqand shahri ".repeat(9).trim() },
+    participants: participants.map(party => ({ ...party, fullName: `Ўзбекистон ${party.userId}`, address: "Samarqand ko‘chasi ".repeat(45) + `ADDRESS-END-${party.userId}`, identityDetails: "Taqdim etilgan rekvizitlar ".repeat(42) + `IDENTITY-END-${party.userId}`, phone: "" })),
+    boxes: [], contentHash: "0".repeat(64), status: "DRAFT", signatures: [], validation: [], reviews: [],
+  };
+  const files = await documents.renderAgreementFiles({ agreementId: "long-formal", version });
+  const text = await agreementPdfText(files.pdf);
+  for (const party of participants) {
+    assert.ok(text.includes(`ADDRESS-END-${party.userId}`));
+    assert.ok(text.includes(`IDENTITY-END-${party.userId}`));
+  }
+  assert.ok(files.pageCount > 2);
+  documents.validateSignatureBoxes(files.boxes, files.pageCount);
+});
+
+test("template version is bound to new content hashes while legacy hashes retain their representation", () => {
+  const version = { kind: "SETTLEMENT", terms, participants, boxes: [], number: 1, id: "hash-version" };
+  const legacy = domain.digest(JSON.stringify({ kind: version.kind, terms, participants, boxes: [], version: 1, id: version.id }));
+  assert.equal(domain.agreementContentHash(version), legacy);
+  assert.equal(domain.agreementContentHash({ ...version, templateVersion: undefined }), legacy);
+  assert.notEqual(domain.agreementContentHash({ ...version, templateVersion: 2 }), legacy);
+});
+
+test("formal repeated headers stay bounded and retain a long complete place", async () => {
+  const version = {
+    id: "header-check", number: 1, createdAt: "2026-11-21T04:00:00Z", kind: "SETTLEMENT", templateVersion: 2,
+    terms: { ...terms, place: "Samarqand\n".repeat(180) + "LOCATION-END" },
+    participants, boxes: [], contentHash: "0".repeat(64), status: "DRAFT", signatures: [], validation: [], reviews: [],
+  };
+  const files = await documents.renderAgreementFiles({ agreementId: "header-check", version });
+  assert.ok(files.pageCount < 10);
+  assert.ok((await agreementPdfText(files.pdf)).includes("LOCATION-END"));
+  documents.validateSignatureBoxes(files.boxes, files.pageCount);
+});
+
+test("formal signature heading follows the boxes on its own page", async () => {
+  const version = {
+    id: "signature-page-check",
+    number: 1,
+    createdAt: "2026-11-21T04:00:00Z",
+    kind: "SETTLEMENT",
+    templateVersion: 2,
+    terms: {
+      ...terms,
+      agreedTerms: "Taraflar hujjatlar va bajarish muddatlarini o‘zaro kelishib belgilaydi. ".repeat(60),
+    },
+    participants,
+    boxes: [],
+    contentHash: "0".repeat(64),
+    status: "DRAFT",
+    signatures: [],
+    validation: [],
+    reviews: [],
+  };
+  const initial = await documents.renderAgreementFiles({ agreementId: "signature-pages", version });
+  assert.ok(initial.pageCount > 1);
+  const boxes = initial.boxes.map((box, index) => ({
+    ...box,
+    page: index === 2 ? initial.pageCount - 1 : 0,
+    y: index === 2 ? 0.74 : 0.82,
+    height: 0.12,
+  }));
+  const files = await documents.renderAgreementFiles({
+    agreementId: "signature-pages",
+    version: { ...version, boxes },
+  });
+  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const loading = getDocument({ data: new Uint8Array(files.pdf), useSystemFonts: false });
+  const document = await loading.promise;
+  try {
+    const page = await document.getPage(1);
+    const content = await page.getTextContent();
+    const heading = content.items.find(item => item.str?.includes("TARAFLARNING IMZOLARI"));
+    assert.ok(heading);
+    const pageHeight = page.getViewport({ scale: 1 }).height;
+    const expectedY = pageHeight * (1 - boxes[0].y) + 16;
+    assert.ok(Math.abs(heading.transform[5] - expectedY) < 1, `Signature heading y=${heading.transform[5]}, expected ${expectedY}`);
+  } finally {
+    await loading.destroy();
+  }
+});
+
 test("scanned PDF dimensions are bounded before native canvas allocation", async () => {
   const originalFetch = global.fetch;
   const previousProvider = process.env.AI_PROVIDER;
