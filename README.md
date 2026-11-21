@@ -1,4 +1,5 @@
-# KELISHUV AI
+# KELISHUV AI LAWAAA AI TEAM
+
 
 O‘zbekiston uchun mahalliy mediatsiya va nizolarni hal qilish platformasi. Ilova `http://localhost:2345` manzilida ishlaydi.
 
