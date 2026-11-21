@@ -5,9 +5,9 @@
 
 ## Xakaton taqdimoti
 
-[PowerPoint’ni yuklaş](docs/presentation/Kelishuv-hackathon-final.pptx) · [PDF’ni köriş](docs/presentation/Kelishuv-hackathon-final.pdf)
+[Yakuniy taqdimot PDF](docs/presentation/Kelishuv-hackathon-final.pdf)
 
-Yakuniy taqdimotning 12 ta slaydi quyida ketma-ket berilgan.
+Quyidagi 12 ta slayd yuborilgan yakuniy PDF’dan olingan.
 
 ![KELIŞUV AI taqdimoti, 1-slayd](docs/presentation/submission/slide-01.png)
 
