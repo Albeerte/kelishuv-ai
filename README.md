@@ -3,19 +3,41 @@
 
 Özbekiston uçun mahalliy mediatsiya va nizolarni hal qiliş platformasi. Ilova `http://localhost:2345` manzilida işlaydi.
 
+## Xakaton taqdimoti
+
+[PowerPoint’ni yuklaş](docs/presentation/Kelishuv-hackathon-final.pptx) · [PDF’ni köriş](docs/presentation/Kelishuv-hackathon-final.pdf)
+
+Yakuniy taqdimotning 12 ta slaydi quyida ketma-ket berilgan.
+
+![KELIŞUV AI taqdimoti, 1-slayd](docs/presentation/submission/slide-01.png)
+
+![KELIŞUV AI taqdimoti, 2-slayd](docs/presentation/submission/slide-02.png)
+
+![KELIŞUV AI taqdimoti, 3-slayd](docs/presentation/submission/slide-03.png)
+
+![KELIŞUV AI taqdimoti, 4-slayd](docs/presentation/submission/slide-04.png)
+
+![KELIŞUV AI taqdimoti, 5-slayd](docs/presentation/submission/slide-05.png)
+
+![KELIŞUV AI taqdimoti, 6-slayd](docs/presentation/submission/slide-06.png)
+
+![KELIŞUV AI taqdimoti, 7-slayd](docs/presentation/submission/slide-07.png)
+
+![KELIŞUV AI taqdimoti, 8-slayd](docs/presentation/submission/slide-08.png)
+
+![KELIŞUV AI taqdimoti, 9-slayd](docs/presentation/submission/slide-09.png)
+
+![KELIŞUV AI taqdimoti, 10-slayd](docs/presentation/submission/slide-10.png)
+
+![KELIŞUV AI taqdimoti, 11-slayd](docs/presentation/submission/slide-11.png)
+
+![KELIŞUV AI taqdimoti, 12-slayd](docs/presentation/submission/slide-12.png)
+
 ![Kelişuv platformasining taqdimot sahifasi](docs/media/landing.png)
 
 [Ommaviy taqdimot](https://github.com/Albeerte/kelishuv-ai-showcase) · [Rasmli PDF](output/pdf/Kelishuv-platforma.pdf) · [Vaqtinçalik namoyiş](https://armadillo-writing-sanctuary.ngrok-free.dev/welcome)
 
-Muallif va loyiha egasi Abduxoliq Solijonov. Manba kodi private repozitoriyda saqlanadi. Public taqdimotda interfeys rasmlari, tizim arxitekturasi, lokal model va loyiha haqida ma’lumot berilgan. Namoyiş havolasi kompyuter va tunnel işlayotgan paytda faol.
-
-## LexHackathon 2026 taqdimoti
-
-[3 daqiqalik PowerPoint](docs/presentation/Kelishuv-LexHackathon-2026.pptx) · [PDF körinişi](docs/presentation/Kelishuv-LexHackathon-2026.pdf) · [Biznes modeli va manbalar](docs/PITCH_EVIDENCE.md)
-
-Taqdimot şablondagi sakkiz mavzuni qamraydi. Nutq matni PowerPoint izohlarida 180 soniyaga taqsimlangan. Muammo bayoni loyiha egasining qariyb 10 mediator bilan dastlabki suhbatlari, bozor dalillari esa Oliy sud va Adliya vazirligi manbalariga tayangan. Taqdim etilgan xakaton qoidalarida final uçun 3 daqiqa nutq, 2 daqiqa demo va 2 daqiqa savol-javob belgilangan.
-
-Bozor ssenariylari, namunaviy gonorar, xarajat va pilot hajmlari tekşiriladigan faraz yoki maqsad sifatida berilgan. Boşlanğiç model mediator belgilaydigan narx va 15% platforma uluşiga asoslanadi.
+Muallif va loyiha egasi Abduxoliq Solijonov. Manba kodi uşbu oçiq repozitoriyda saqlanadi. Public taqdimotda interfeys rasmlari, tizim arxitekturasi, lokal model va loyiha haqida ma’lumot berilgan. Namoyiş havolasi kompyuter va tunnel işlayotgan paytda faol.
 
 ## Interfeys
 
