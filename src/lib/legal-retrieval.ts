@@ -5,6 +5,7 @@ import corpus from "@/data/assistant-corpus.json";
 import courtIndex from "@/data/court-practice.json";
 import { classify, LEGAL_SOURCES } from "./legal";
 import type { AssistantSource } from "./assistant-types";
+import { toTraditionalUzbek } from "./uzbek-alphabet";
 
 export type LegalEvidence = AssistantSource & {
   content: string;
@@ -108,7 +109,7 @@ function expandQuery(text: string) {
   return expanded;
 }
 export function normalizeLegalQuery(text: string) {
-  return text
+  return toTraditionalUzbek(text)
     .toLocaleLowerCase()
     .replace(/[а-яёўқғҳ]/g, (character) => cyrillic[character] || character)
     .replace(/[’‘`ʻʼ']/g, "")

@@ -1,64 +1,64 @@
-# MediMatch mahalliy platformasi
+# MediMatç mahalliy platformasi
 
-## Foydalanuvchi talabi
+## Foydalanuvçi talabi
 
-> mediatrlik boyicha bolsin mediatr bolib royhatdan otib davolarni qabul qilish va daromad topishi mumkin platformaga foiz tolab foydalanuvchilar royhatdan otib kerakli hujjatlarni yuklab va arizalarini yuklab ikki tomon ham kelishishsa va sudga arbitajga yoki mediatrga borishi kerakligi hakamlik sudiga yoki shularga borish kerakligini shuntirsa va kelishuv tugmasi orqali kelishishsa oz shaxridagi mediatrlarga bu nizo korinadi va ularga mediatr telefon qilib davo arizalarni korib chiqib beradi plan tuzib yarat internetdan biz qanday qilib lex.uzdan olamiz va berilgan nizoni ozbekistondagi qaysi qonun va huquqlarga beramiz
+> mediatrlik boyiça bolsin mediatr bolib royhatdan otib davolarni qabul qiliş va daromad topişi mumkin platformaga foiz tolab foydalanuvçilar royhatdan otib kerakli hujjatlarni yuklab va arizalarini yuklab ikki tomon ham kelişişsa va sudga arbitajga yoki mediatrga borişi kerakligi hakamlik sudiga yoki şularga boriş kerakligini şuntirsa va kelişuv tugmasi orqali kelişişsa oz şaxridagi mediatrlarga bu nizo korinadi va ularga mediatr telefon qilib davo arizalarni korib çiqib beradi plan tuzib yarat internetdan biz qanday qilib lex.uzdan olamiz va berilgan nizoni ozbekistondagi qaysi qonun va huquqlarga beramiz
 
-Ilova foydalanuvchi kompyuterida `http://localhost:2345` orqali ishlaydi.
+Ilova foydalanuvçi kompyuterida `http://localhost:2345` orqali işlaydi.
 
 ## Jarayon
 
-1. Fuqaro hisob ochadi, shahar va telefonini kiritadi. Nizo tavsifi, talab summasi, ariza va dalillarni yuklaydi.
-2. Mahalliy huquqiy yo‘naltirish qoidalari mediatsiya, muzokara, davlat sudi, hakamlik sudi va xalqaro tijorat arbitraji shartlarini manbalari bilan ko‘rsatadi. Taraflarning maqomi va yozma arbitraj kelishuvi alohida so‘raladi.
-3. Murojaatchi ikkinchi taraf emailiga bog‘langan taklif havolasini yaratadi va o‘zi ulashadi. Ikkinchi taraf alohida hisobdan o‘z bayonini va hujjatlarini qo‘shadi.
-4. Har bir taraf mediatorga yo‘naltirish hamda aloqa va hujjatlarni qabul qilgan mediatorga ochishga alohida rozilik beradi. Vaqt, hisob va rozilik matni versiyasi saqlanadi.
-5. Ikkala rozilikdan so‘ng anonim so‘rov ayni hudud va shahardagi tasdiqlangan, mos ixtisosli mediatorlarga chiqadi. Bu shahar filtri platformaning mahsulot qoidasidir.
-6. Bitta mediator so‘rovni qabul qiladi. U ikki tarafning telefonlari, bayonlari va unga ochilgan hujjatlarni ko‘radi, qo‘ng‘iroq natijasini qayd etadi.
-7. Taraflar aynan shu mediatorni o‘zaro tanlaganini tasdiqlaydi. Mediator yozma tartib-taomil kelishuvini yuklab, sessiya belgilaydi.
-8. Yakunlashda taraflar imzolagan va mediator tasdiqlagan mediativ kelishuv fayli saqlanadi. Xizmat haqi tushumi va platforma komissiyasi qo‘lda qayd etiladi.
+1. Fuqaro hisob oçadi, şahar va telefonini kiritadi. Nizo tavsifi, talab summasi, ariza va dalillarni yuklaydi.
+2. Mahalliy huquqiy yönaltiriş qoidalari mediatsiya, muzokara, davlat sudi, hakamlik sudi va xalqaro tijorat arbitraji şartlarini manbalari bilan körsatadi. Taraflarning maqomi va yozma arbitraj kelişuvi alohida söraladi.
+3. Murojaatçi ikkinçi taraf emailiga boğlangan taklif havolasini yaratadi va özi ulaşadi. Ikkinçi taraf alohida hisobdan öz bayonini va hujjatlarini qöşadi.
+4. Har bir taraf mediatorga yönaltiriş hamda aloqa va hujjatlarni qabul qilgan mediatorga oçişga alohida rozilik beradi. Vaqt, hisob va rozilik matni versiyasi saqlanadi.
+5. Ikkala rozilikdan söng anonim sörov ayni hudud va şahardagi tasdiqlangan, mos ixtisosli mediatorlarga çiqadi. Bu şahar filtri platformaning mahsulot qoidasidir.
+6. Bitta mediator sörovni qabul qiladi. U ikki tarafning telefonlari, bayonlari va unga oçilgan hujjatlarni köradi, qönğiroq natijasini qayd etadi.
+7. Taraflar aynan şu mediatorni özaro tanlaganini tasdiqlaydi. Mediator yozma tartib-taomil kelişuvini yuklab, sessiya belgilaydi.
+8. Yakunlaşda taraflar imzolagan va mediator tasdiqlagan mediativ kelişuv fayli saqlanadi. Xizmat haqi tuşumi va platforma komissiyasi qölda qayd etiladi.
 
-Mediatsiyani qo‘llash kelishuvi, mediatorni o‘zaro tanlash, yozma tartib-taomil kelishuvi va yakuniy mediativ kelishuv qonunning turli bosqichlaridir. Taraf ma’lumotini boshqa tarafga ochish uchun uning roziligi talab qilinadi. [O‘RQ-482, 7, 16, 19–22, 27–29-moddalar](https://lex.uz/docs/-3805227)
+Mediatsiyani qöllaş kelişuvi, mediatorni özaro tanlaş, yozma tartib-taomil kelişuvi va yakuniy mediativ kelişuv qonunning turli bosqiçlaridir. Taraf ma’lumotini boşqa tarafga oçiş uçun uning roziligi talab qilinadi. [ÖRQ-482, 7, 16, 19–22, 27–29-moddalar](https://lex.uz/docs/-3805227)
 
-## Mediatorni ro‘yxatdan o‘tkazish
+## Mediatorni röyxatdan ötkaziş
 
-Mediator hisob ochadi, shahar, aloqa, ixtisos, tajriba, guvohnoma raqami, reyestr havolasi va tasdiqlovchi hujjatni yuboradi. Administrator rasmiy reyestrni qo‘lda solishtirib, tekshiruv qaydini saqlaydi va profilni faollashtiradi. Amaldagi talablar oliy ma’lumot, maxsus kurs, malaka imtihoni va reyestrga kiritilishni qamrab oladi, qonundagi imtiyozlar alohida qo‘llanadi. [O‘RQ-482, 12-modda](https://lex.uz/docs/-3805227) · [2026-yilgi 140-son qaror](https://lex.uz/docs/-8115139) · [Rasmiy reyestr](https://gov.uz/oz/adliya/sections/professional-mediatorlar-reyestri)
+Mediator hisob oçadi, şahar, aloqa, ixtisos, tajriba, guvohnoma raqami, reyestr havolasi va tasdiqlovçi hujjatni yuboradi. Administrator rasmiy reyestrni qölda soliştirib, tekşiruv qaydini saqlaydi va profilni faollaştiradi. Amaldagi talablar oliy ma’lumot, maxsus kurs, malaka imtihoni va reyestrga kiritilişni qamrab oladi, qonundagi imtiyozlar alohida qöllanadi. [ÖRQ-482, 12-modda](https://lex.uz/docs/-3805227) · [2026-yilgi 140-son qaror](https://lex.uz/docs/-8115139) · [Rasmiy reyestr](https://gov.uz/oz/adliya/sections/professional-mediatorlar-reyestri)
 
-## Huquqiy yo‘naltirish
+## Huquqiy yönaltiriş
 
-- Mediatsiya fuqarolik, tadbirkorlik, bank, sug‘urta, mehnat va oilaviy munosabatlarda baholanadi. Ishtirok etmayotgan uchinchi shaxslar yoki jamoat manfaatlariga daxldorlik tekshiriladi. [3-modda](https://lex.uz/docs/-3805227)
-- Ichki hakamlik uchun nizoni qamrab oladigan yozma kelishuv kerak. Mehnat, oila, ma’muriy, yer va bino-inshootga egalikni belgilash nizolari hamda qonunda sanalgan davlatga aloqador talablar uchun cheklovlar mavjud. [O‘RQ-64, 5, 9, 11–13-moddalar](https://lex.uz/docs/-1072079)
-- Xalqaro tijorat arbitrajida tijoriy va xalqaro bog‘liqlik hamda yozma arbitraj kelishuvi baholanadi. [O‘RQ-674, 4, 12-moddalar](https://lex.uz/docs/-5294106)
-- Sud turi taraflar maqomi va talabga qarab tekshiriladi. Fuqarolik, iqtisodiy yoki ma’muriy sudga oid dastlabki yo‘nalish beriladi. Hududiy sudlov alohida tekshiriladi. [FPK](https://lex.uz/docs/-3517337) · [IPK](https://lex.uz/docs/-3523891) · [MSIYtK](https://lex.uz/docs/-3527353)
+- Mediatsiya fuqarolik, tadbirkorlik, bank, suğurta, mehnat va oilaviy munosabatlarda baholanadi. Iştirok etmayotgan uçinçi şaxslar yoki jamoat manfaatlariga daxldorlik tekşiriladi. [3-modda](https://lex.uz/docs/-3805227)
+- Içki hakamlik uçun nizoni qamrab oladigan yozma kelişuv kerak. Mehnat, oila, ma’muriy, yer va bino-inşootga egalikni belgilaş nizolari hamda qonunda sanalgan davlatga aloqador talablar uçun çeklovlar mavjud. [ÖRQ-64, 5, 9, 11–13-moddalar](https://lex.uz/docs/-1072079)
+- Xalqaro tijorat arbitrajida tijoriy va xalqaro boğliqlik hamda yozma arbitraj kelişuvi baholanadi. [ÖRQ-674, 4, 12-moddalar](https://lex.uz/docs/-5294106)
+- Sud turi taraflar maqomi va talabga qarab tekşiriladi. Fuqarolik, iqtisodiy yoki ma’muriy sudga oid dastlabki yönaliş beriladi. Hududiy sudlov alohida tekşiriladi. [FPK](https://lex.uz/docs/-3517337) · [IPK](https://lex.uz/docs/-3523891) · [MSIYtK](https://lex.uz/docs/-3527353)
 
 ## Lex.uz ma’lumot oqimi
 
-Tanlangan normativ moddalar rasmiy HTMLdan olinadi. Har birida haqiqiy modda identifikatori, manba havolasi, olingan vaqt, tekshirish sanasi va mazmun xeshi saqlanadi. Tahririy izohlar va o‘zgarish tarixi chiqarib tashlanadi. Yangilanishlar RSS hamda normativ mazmun xeshi orqali aniqlanadi. Yangi katalog to‘liq tayyorlangach atomar almashtiriladi. Embedding va Qdrant indekslash sozlamalar bilan alohida yoqiladi. [Lex.uz RSS](https://lex.uz/uz/rss) · [Axborot shartlari](https://lex.uz/uz/axborot)
+Tanlangan normativ moddalar rasmiy HTMLdan olinadi. Har birida haqiqiy modda identifikatori, manba havolasi, olingan vaqt, tekşiriş sanasi va mazmun xeşi saqlanadi. Tahririy izohlar va özgariş tarixi çiqarib taşlanadi. Yangilanişlar RSS hamda normativ mazmun xeşi orqali aniqlanadi. Yangi katalog töliq tayyorlangaç atomar almaştiriladi. Embedding va Qdrant indekslaş sozlamalar bilan alohida yoqiladi. [Lex.uz RSS](https://lex.uz/uz/rss) · [Axborot şartlari](https://lex.uz/uz/axborot)
 
-Ochiq hujjatlashtirilgan umumiy API tadqiqotda topilmadi. Ommaviy tijoriy yuklash uchun operator bilan API yoki eksport shartlari aniqlashtiriladi. [Operator](https://lex.uz/uz/about)
+Oçiq hujjatlaştirilgan umumiy API tadqiqotda topilmadi. Ommaviy tijoriy yuklaş uçun operator bilan API yoki eksport şartlari aniqlaştiriladi. [Operator](https://lex.uz/uz/about)
 
-## Amalga oshirish bosqichlari
+## Amalga oşiriş bosqiçlari
 
-- [x] Amaldagi huquqiy yo‘naltirish qoidalari va manbalar katalogi.
-- [x] Ikki hisobli taklif, ikki rozilik, shahar bo‘yicha navbat va yagona qabul qilish.
-- [x] Mediator arizasi, reyestrni qo‘lda tekshirish va hujjatlar maxfiyligi.
-- [x] Mediator dosyesi, qo‘ng‘iroqlar, o‘zaro tanlash, yozma kelishuvlar.
-- [x] Bir nizo uchun tushum va komissiya daftari.
-- [x] Asosiy kirish yo‘llari, eski ma’lumotlar mosligi va ruxsatlarni tekshirish.
+- [x] Amaldagi huquqiy yönaltiriş qoidalari va manbalar katalogi.
+- [x] Ikki hisobli taklif, ikki rozilik, şahar böyiça navbat va yagona qabul qiliş.
+- [x] Mediator arizasi, reyestrni qölda tekşiriş va hujjatlar maxfiyligi.
+- [x] Mediator dosyesi, qönğiroqlar, özaro tanlaş, yozma kelişuvlar.
+- [x] Bir nizo uçun tuşum va komissiya daftari.
+- [x] Asosiy kiriş yöllari, eski ma’lumotlar mosligi va ruxsatlarni tekşiriş.
 
-## Tekshirilgan natijalar
+## Tekşirilgan natijalar
 
-TypeScript tekshiruvi va production build o‘tdi. API uchun 131 ta integratsiya tekshiruvi bajarildi. Yana 23 ta tekshiruv eski biriktirishlarni saqlash, yangi biriktirishga rozilik, umumiy taraf qatnashadigan sessiyalar to‘qnashuvi va shahar-tuman farqini qamrab oldi. Mustaqil kod ko‘rigining tuzatishlar bo‘yicha yakuniy natijasi o‘tdi.
+TypeScript tekşiruvi va production build ötdi. API uçun 131 ta integratsiya tekşiruvi bajarildi. Yana 23 ta tekşiruv eski biriktirişlarni saqlaş, yangi biriktirişga rozilik, umumiy taraf qatnaşadigan sessiyalar töqnaşuvi va şahar-tuman farqini qamrab oldi. Mustaqil kod körigining tuzatişlar böyiça yakuniy natijasi ötdi.
 
-Brauzerda yangi murojaat, shaxsiy taklif, ikkinchi taraf bayoni, rozilik va uni qaytarib olish, mediator arizasi, administrator tasdig‘i, navbatdan qabul qilish, qo‘ng‘iroq qaydi, ish rejasi, ikki tarafning mediator tanlovi, yozma kelishuvlar, sessiya, tushum va komissiya qaydi sinovdan o‘tdi. 390 piksel mobil ko‘rinishda sahifa kengligi tekshirildi.
+Brauzerda yangi murojaat, şaxsiy taklif, ikkinçi taraf bayoni, rozilik va uni qaytarib oliş, mediator arizasi, administrator tasdiği, navbatdan qabul qiliş, qönğiroq qaydi, iş rejasi, ikki tarafning mediator tanlovi, yozma kelişuvlar, sessiya, tuşum va komissiya qaydi sinovdan ötdi. 390 piksel mobil körinişda sahifa kengligi tekşirildi.
 
-Lex.uz’dan 11 ta qonun va kodeksning 33 ta moddasi olindi. Havolalar, xeshlar, tahrir sanalari, tahririy izohlarni chiqarish va qo‘shimcha modda raqamlari tekshirildi. Tashqi embedding, to‘lov provayderi va elektron imzo integratsiyalari sozlangach alohida sinovdan o‘tkaziladi.
+Lex.uz’dan 11 ta qonun va kodeksning 33 ta moddasi olindi. Havolalar, xeşlar, tahrir sanalari, tahririy izohlarni çiqariş va qöşimça modda raqamlari tekşirildi. Taşqi embedding, tölov provayderi va elektron imzo integratsiyalari sozlangaç alohida sinovdan ötkaziladi.
 
 ## Hisob va mahalliy integratsiyalar
 
-Boshlang‘ich komissiya mavjud mahsulot tarifiga muvofiq 15 foiz deb olindi. Bu shartnomaviy tarif. Mediator haqining to‘lanishi va xarajatlar taraflarning kelishuviga bog‘liq. Mahalliy versiyada to‘lov tushumi va komissiya administrator qaydi bilan hisobga olinadi. [O‘RQ-482, 28-modda](https://lex.uz/docs/-3805227)
+Boşlanğiç komissiya mavjud mahsulot tarifiga muvofiq 15 foiz deb olindi. Bu şartnomaviy tarif. Mediator haqining tölanişi va xarajatlar taraflarning kelişuviga boğliq. Mahalliy versiyada tölov tuşumi va komissiya administrator qaydi bilan hisobga olinadi. [ÖRQ-482, 28-modda](https://lex.uz/docs/-3805227)
 
-Yuklangan imzoli skanlar inson tasdig‘i bilan qayd etiladi. Elektron imzoni tekshirish va to‘lov provayderi ulanishi keyingi integratsiya sifatida qoldiriladi. Mahalliy qidiruv tanlangan moddalar katalogidan foydalanadi. Tashqi AI uchun kalitlar va xizmat sozlamalari kerak.
+Yuklangan imzoli skanlar inson tasdiği bilan qayd etiladi. Elektron imzoni tekşiriş va tölov provayderi ulanişi keyingi integratsiya sifatida qoldiriladi. Mahalliy qidiruv tanlangan moddalar katalogidan foydalanadi. Taşqi AI uçun kalitlar va xizmat sozlamalari kerak.
 
-## Keyingi rivojlantirish
+## Keyingi rivojlantiriş
 
-Biriktirilgan konsepsiyadagi profilaktik shartnomalar, notarial yo‘naltirish, davlat organlariga murojaatlar va korxonalar uchun nizo tugmasi asosiy mediatsiya jarayoni ishga tushgach alohida bosqichda kengaytiriladi.
+Biriktirilgan konsepsiyadagi profilaktik şartnomalar, notarial yönaltiriş, davlat organlariga murojaatlar va korxonalar uçun nizo tugmasi asosiy mediatsiya jarayoni işga tuşgaç alohida bosqiçda kengaytiriladi.

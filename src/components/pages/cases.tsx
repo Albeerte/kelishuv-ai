@@ -1,6 +1,7 @@
 "use client";
 import { T as LocalizedText, translate as localizeText } from "@/lib/i18n";
 import Link from "next/link";
+import { normalizeUzbekSearch } from "@/lib/uzbek-alphabet";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -76,9 +77,8 @@ export function Cases() {
         (tab === "active" && active.includes(record)) ||
         (tab === "resolved" && record.status === "RESOLVED")) &&
       (!type || record.type === type) &&
-      `${record.title} ${record.number}`
-        .toLowerCase()
-        .includes(search.toLowerCase()),
+      normalizeUzbekSearch(`${record.title} ${record.number}`)
+        .includes(normalizeUzbekSearch(search)),
   );
   return (
     <>
@@ -113,7 +113,7 @@ export function Cases() {
                 className={tab === item.key ? "active" : ""}
                 onClick={() => setTab(item.key)}
               >
-                {item.label}
+                <LocalizedText>{item.label}</LocalizedText>
                 <span>{item.count}</span>
               </button>
             ))}
@@ -264,9 +264,9 @@ export function Solutions({
                     ? "Bepul"
                     : `${money(solution.cost)} so‘m`}
                   <small>
-                    {solution.cost > 0
+                    <LocalizedText>{solution.cost > 0
                       ? "Taxminiy xarajat"
-                      : "Platformada xat tayyorlash"}
+                      : "Platformada xat tayyorlash"}</LocalizedText>
                   </small>
                 </strong>
               </div>
@@ -301,11 +301,11 @@ export function Solutions({
                 {busy === solution.type ? (
                   <Loader2 className="spin" size={16} />
                 ) : null}
-                {solution.type === "MEDIATION"
+                <LocalizedText>{solution.type === "MEDIATION"
                   ? "Mediatsiyaga o‘tish"
                   : solution.type === "COURT"
                     ? "Sud yo‘lini tanlash"
-                    : "Kelishuv yo‘lini tanlash"}
+                    : "Kelishuv yo‘lini tanlash"}</LocalizedText>
               </Button>
             </article>
           );
@@ -417,7 +417,7 @@ export function CaseDetail({ id }: { id: string }) {
             key={item.key}
             onClick={() => setTab(item.key)}
           >
-            {item.label}
+            <LocalizedText>{item.label}</LocalizedText>
           </button>
         ))}
       </div>
@@ -457,7 +457,7 @@ export function CaseDetail({ id }: { id: string }) {
                     <LocalizedText>Vaziyat tavsifi</LocalizedText>
                   </h2>
                   <span className="category-pill">
-                    {TYPE_LABELS[record.type]}
+                    <LocalizedText>{TYPE_LABELS[record.type]}</LocalizedText>
                   </span>
                 </div>
                 <p className="case-description">{record.description}</p>
@@ -494,9 +494,9 @@ export function CaseDetail({ id }: { id: string }) {
                     </h3>
                     <p>{record.analysis.summary}</p>
                     <small>
-                      {record.analysis.mode === "rag"
+                      <LocalizedText>{record.analysis.mode === "rag"
                         ? "RAG yordamida tayyorlangan"
-                        : "Mahalliy huquqiy ma’lumotnoma"}
+                        : "Mahalliy huquqiy ma’lumotnoma"}</LocalizedText>
                     </small>
                   </div>
                 </div>
@@ -566,9 +566,9 @@ export function CaseDetail({ id }: { id: string }) {
                       </span>
                     </div>
                     <p>
-                      {record.mediation && !record.mediation.procedureDocumentId
+                      <LocalizedText>{record.mediation && !record.mediation.procedureDocumentId
                         ? "Ikkala taraf mediatorni tanlasin va yozma tartib-taomil kelishuvi yuklansin."
-                        : "Mediatsiya uchun o‘zingizga mos vaqtni belgilang."}
+                        : "Mediatsiya uchun o‘zingizga mos vaqtni belgilang."}</LocalizedText>
                     </p>
                     <Button
                       className="full-width"
@@ -615,7 +615,7 @@ export function CaseDetail({ id }: { id: string }) {
                           disabled={ratingBusy}
                           onClick={submitRating}
                         >
-                          {completed.rating ? "Bahoni yangilash" : "Baholash"}
+                          <LocalizedText>{completed.rating ? "Bahoni yangilash" : "Baholash"}</LocalizedText>
                         </Button>
                       </>
                     )}
@@ -626,18 +626,18 @@ export function CaseDetail({ id }: { id: string }) {
                       <Handshake size={30} />
                     </div>
                     <h3>
-                      {record.chosenSolution === "COURT"
+                      <LocalizedText>{record.chosenSolution === "COURT"
                         ? "Sudga tayyorgarlik"
                         : record.chosenSolution === "NEGOTIATION"
                           ? "Talabnomani tayyorlang"
                           : record.chosenSolution === "MEDIATION"
                             ? "Mediator kutilmoqda"
-                            : "O‘zingizga mos yo‘lni tanlang"}
+                            : "O‘zingizga mos yo‘lni tanlang"}</LocalizedText>
                     </h3>
                     <p>
-                      {record.chosenSolution === "MEDIATION"
+                      <LocalizedText>{record.chosenSolution === "MEDIATION"
                         ? "Ikkala taraf rozilik bildirgach, so‘rov shu shahardagi mos mediatorlarga ko‘rinadi."
-                        : "Quyidagi yechimlar, hujjatlar va xarajatlar bilan tanishing."}
+                        : "Quyidagi yechimlar, hujjatlar va xarajatlar bilan tanishing."}</LocalizedText>
                     </p>
                     <Button
                       variant="outline"
@@ -687,10 +687,10 @@ export function CaseDetail({ id }: { id: string }) {
                     </span>
                     <div>
                       <strong>
-                        {source.title}
-                        <small>{source.article}</small>
+                        <LocalizedText>{source.title}</LocalizedText>
+                        <small><LocalizedText>{source.article}</LocalizedText></small>
                       </strong>
-                      <p>{source.summary}</p>
+                      <p><LocalizedText>{source.summary}</LocalizedText></p>
                       <span>
                         {source.lawNumber}{" "}
                         <LocalizedText>· Tekshirilgan </LocalizedText>
@@ -735,7 +735,7 @@ export function CaseDetail({ id }: { id: string }) {
                   { label: "Jami", value: record.analysis.costs.total },
                 ].map((item) => (
                   <span key={item.label}>
-                    <small>{item.label}</small>
+                    <small><LocalizedText>{item.label}</LocalizedText></small>
                     <strong>
                       {money(item.value)} <LocalizedText>so‘m</LocalizedText>
                     </strong>
@@ -773,7 +773,7 @@ export function CaseDetail({ id }: { id: string }) {
                   <Check size={15} />
                 </span>
                 <div>
-                  <h3>{STATUS_LABELS[item.status]}</h3>
+                  <h3><LocalizedText>{STATUS_LABELS[item.status]}</LocalizedText></h3>
                   <p>{item.note}</p>
                   <small>
                     {fullDate(item.at)} <LocalizedText>· </LocalizedText>
@@ -913,9 +913,9 @@ export function DocumentsForCase({
                   {fullDate(document.uploadedAt)}
                   {document.kind === "APPLICATION" ? " · Ariza/bayon" : ""}{" "}
                   <LocalizedText>·</LocalizedText>{" "}
-                  {document.visibility === "PARTIES"
+                  <LocalizedText>{document.visibility === "PARTIES"
                     ? "Taraflarga ochiq"
-                    : "Mediator uchun"}
+                    : "Mediator uchun"}</LocalizedText>
                 </small>
               </div>
               <a
@@ -941,9 +941,9 @@ export function DocumentsForCase({
           >
             <UploadCloud size={30} />
             <strong>
-              {busy
+              <LocalizedText>{busy
                 ? "Shifrlab saqlanmoqda..."
-                : "Birinchi hujjatingizni yuklang"}
+                : "Birinchi hujjatingizni yuklang"}</LocalizedText>
             </strong>
             <span>
               <LocalizedText>
@@ -977,7 +977,7 @@ export function DocumentsForCase({
           <LocalizedText>Tavsiya etilgan hujjatlar</LocalizedText>
         </h2>
         <p>
-          {TYPE_LABELS[record.type]}{" "}
+          <LocalizedText>{TYPE_LABELS[record.type]}</LocalizedText>{" "}
           <LocalizedText>uchun tayyorlang</LocalizedText>
         </p>
         {record.analysis.documents.map((document, index) => (

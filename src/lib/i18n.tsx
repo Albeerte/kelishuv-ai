@@ -91,7 +91,7 @@ export function LocaleSwitcher() {
         aria-label={t("Interfeys tili")}
         onChange={(event) => setLocale(event.target.value as Locale)}
       >
-        <option value="uz">O‘zbekcha</option>
+        <option value="uz">Özbekça</option>
         <option value="uz-Cyrl">Ўзбекча</option>
         <option value="ru">Русский</option>
       </select>

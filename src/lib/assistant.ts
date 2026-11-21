@@ -5,6 +5,7 @@ import { assessLegalRoutes } from "./legal-routing";
 import { getAIProviderStatus, runStructuredAI } from "./ai-provider";
 import type { Locale } from "./kelishuv-types";
 import { localeText } from "./locale-text";
+import { toTraditionalUzbek } from "./uzbek-alphabet";
 import type { AssistantReply } from "./assistant-types";
 import { normalizeLegalQuery, retrieveLegalEvidence } from "./legal-retrieval";
 export type { AssistantReply } from "./assistant-types";
@@ -190,13 +191,14 @@ export async function answerAssistant(
   externalConsent: boolean,
   locale: Locale,
 ): Promise<AssistantReply> {
+  const matchingQuestion = toTraditionalUzbek(question);
   const legalProblem =
     classify(question) !== "BOSHQA" ||
     /sotib|nuqson|to.lanma|to.lamadi|maosh|ish haqi|qarz|aliment|ishdan|sifatsiz|shartnoma.*buz|kafolat|tahdid|jinoyat|soliq|meros|pensiya|konstituts|huquq|солиқ|мерос|пенсия|конституц|ҳуқуқ|зарплат|долг|уволен|налог|наслед|право/i.test(
-      question,
+      matchingQuestion,
     );
   const siteHelp =
-    !legalProblem && help.find((item) => item.pattern.test(question));
+    !legalProblem && help.find((item) => item.pattern.test(matchingQuestion));
   if (siteHelp)
     return {
       answer: localeText(siteHelp.answer, locale),
@@ -317,8 +319,8 @@ export async function answerAssistant(
     }
   }
   return {
-    answer,
-    steps,
+    answer: localeText(answer, locale),
+    steps: steps.map((step) => localeText(step, locale)),
     sources: selected.map((source) => ({
       id: source.id,
       title: source.title,

@@ -145,7 +145,7 @@ export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
               <small>
                 <T>{turn.reply.mode}</T>
               </small>
-              <p>{turn.reply.answer}</p>
+              <p><T>{turn.reply.answer}</T></p>
               <ol>
                 {turn.reply.steps.map((step, i) => (
                   <li key={i}>
@@ -158,12 +158,12 @@ export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
                   <BookOpen size={18} />
                   <div>
                     <strong>
-                      {source.title} · {source.article}
+                      <T>{source.title}</T> · <T>{source.article}</T>
                     </strong>
                     <small>
                       <T>Manbaning asl matni (o‘zbekcha)</T>
                     </small>
-                    <p lang={source.originalLanguage}>{source.summary}</p>
+                    <p lang={source.originalLanguage}><T>{source.summary}</T></p>
                     <small>
                       <T>
                         {source.kind === "COURT_PRACTICE"
@@ -172,7 +172,7 @@ export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
                             ? "Oliy sud Plenumi qarori"
                             : "Qonunchilik manbasi"}
                       </T>
-                      {" · "}
+                      <T>{" · "}</T>
                       <T>
                         {source.current
                           ? "Manbadan tekshirildi"

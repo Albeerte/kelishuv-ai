@@ -327,11 +327,11 @@ function Shell({ pathname }: { pathname: string }) {
           <span className="workspace-icon">
             <ShieldCheck size={15} />
           </span>
-          {user.role === "MEDIATOR"
+          <LocalizedText>{user.role === "MEDIATOR"
             ? "Mediator kabineti"
             : user.role === "ADMIN"
               ? "Boshqaruv paneli"
-              : "Shaxsiy kabinet"}
+              : "Shaxsiy kabinet"}</LocalizedText>
           <ChevronDown size={14} />
         </div>
         <nav
@@ -418,7 +418,7 @@ function Shell({ pathname }: { pathname: string }) {
             </span>
             <span>
               <strong>{user.fullName}</strong>
-              <small>{profile.demo ? "Namuna hisobi" : "Shaxsiy hisob"}</small>
+              <small><LocalizedText>{profile.demo ? "Namuna hisobi" : "Shaxsiy hisob"}</LocalizedText></small>
             </span>
             <Link
               className="sidebar-user-chevron"
@@ -680,7 +680,7 @@ function SearchDialog({
           <a key={source.id} href={source.url} target="_blank" rel="noreferrer">
             <BookOpen size={18} />
             <span>
-              {source.title}
+              <LocalizedText>{source.title}</LocalizedText>
               <small>{source.lawNumber}</small>
             </span>
             <ChevronRight size={16} />

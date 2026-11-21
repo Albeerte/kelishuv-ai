@@ -449,7 +449,7 @@ export function AuthPage({ register }: { register: boolean }) {
           </p>
         </div>
         <footer>
-          © {new Date().getFullYear()} KELISHUV AI{" "}
+          © {new Date().getFullYear()} <T>KELISHUV AI</T>{" "}
           <Link href="/privacy">
             <T>Maxfiylik</T>
           </Link>

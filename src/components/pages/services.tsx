@@ -771,7 +771,7 @@ export function TemplateStudio() {
             <option value="">{t("Nizoni tanlang")}</option>
             {ownedCases.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.number} — {item.title}
+                {item.number} — {item.demo ? t(item.title) : item.title}
               </option>
             ))}
           </select>

@@ -32,7 +32,7 @@ export function CustomerCaseList({ cases }: { cases: CaseRecord[] }) {
             <div>
               <div className="friendly-case-title">
                 <Link href={`/dashboard/cases/${record.id}`}>
-                  {record.title}
+                  {record.demo ? <T>{record.title}</T> : record.title}
                 </Link>
                 {record.demo && (
                   <span className="demo-label">

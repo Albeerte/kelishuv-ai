@@ -68,7 +68,7 @@ function RoleGate({ role }: { role: "MEDIATOR" | "ADMIN" }) {
         <ShieldCheck size={38} />
       </span>
       <h1>
-        {role === "MEDIATOR" ? "Mediator kabineti" : "Administrator paneli"}
+        <LocalizedText>{role === "MEDIATOR" ? "Mediator kabineti" : "Administrator paneli"}</LocalizedText>
       </h1>
       <p>
         <LocalizedText>
@@ -230,8 +230,8 @@ export function MediatorPanel({ path }: { path: string }) {
               <item.icon size={21} />
             </span>
             <span>
-              {item.label}
-              <strong>{item.value}</strong>
+              <LocalizedText>{item.label}</LocalizedText>
+              <strong><LocalizedText>{item.value}</LocalizedText></strong>
             </span>
           </div>
         ))}
@@ -263,7 +263,7 @@ export function MediatorPanel({ path }: { path: string }) {
                       <Handshake size={24} />
                     </span>
                     <div>
-                      <h3>{TYPE_LABELS[record.type]}</h3>
+                      <h3><LocalizedText>{TYPE_LABELS[record.type]}</LocalizedText></h3>
                       <p>{record.summary}</p>
                       <small>
                         {record.number} <LocalizedText>· </LocalizedText>
@@ -327,7 +327,7 @@ export function MediatorPanel({ path }: { path: string }) {
                         <div key={record.id}>
                           <span>
                             {record.number} <LocalizedText>— </LocalizedText>
-                            {record.title}
+                            {record.demo ? <LocalizedText>{record.title}</LocalizedText> : record.title}
                           </span>
                           <Button
                             variant="outline"
@@ -357,7 +357,7 @@ export function MediatorPanel({ path }: { path: string }) {
         <section className="panel sessions-panel">
           <div className="section-heading">
             <h2>
-              {mode ? "Sessiyalar jadvali" : "Yaqinlashayotgan sessiyalar"}
+              <LocalizedText>{mode ? "Sessiyalar jadvali" : "Yaqinlashayotgan sessiyalar"}</LocalizedText>
             </h2>
             {!mode && (
               <Link className="text-link" href="/mediator/sessions">
@@ -412,11 +412,11 @@ export function MediatorPanel({ path }: { path: string }) {
                             className={`status-badge ${session.status === "COMPLETED" ? "status-resolved" : session.status === "CANCELLED" ? "status-closed" : "status-session_scheduled"}`}
                           >
                             <span />
-                            {session.status === "COMPLETED"
+                            <LocalizedText>{session.status === "COMPLETED"
                               ? "Yakunlangan"
                               : session.status === "CANCELLED"
                                 ? "Bekor qilingan"
-                                : "Rejada"}
+                                : "Rejada"}</LocalizedText>
                           </span>
                         </td>
                         <td>
@@ -531,13 +531,13 @@ export function MediatorPanel({ path }: { path: string }) {
                         </td>
                         <td>
                           <span className="category-pill">
-                            {session.paid
+                            <LocalizedText>{session.paid
                               ? "To‘langan"
                               : session.status === "COMPLETED"
                                 ? "Hisoblangan"
                                 : session.status === "CANCELLED"
                                   ? "Bekor qilingan"
-                                  : "Kutilmoqda"}
+                                  : "Kutilmoqda"}</LocalizedText>
                           </span>
                         </td>
                       </tr>
@@ -590,7 +590,7 @@ export function MediatorPanel({ path }: { path: string }) {
             </p>
           </div>
           <Button type="submit" disabled={busy || notes.trim().length < 20}>
-            {busy ? "Saqlanmoqda..." : "Kelishuvni qayd etish"}
+            <LocalizedText>{busy ? "Saqlanmoqda..." : "Kelishuvni qayd etish"}</LocalizedText>
           </Button>
         </form>
       </Dialog>
@@ -724,7 +724,7 @@ export function AdminPage({ path }: { path: string }) {
               </span>
               <span>
                 <LocalizedText>{item.label}</LocalizedText>
-                <strong>{item.value}</strong>
+                <strong><LocalizedText>{item.value}</LocalizedText></strong>
               </span>
             </div>
           ))}

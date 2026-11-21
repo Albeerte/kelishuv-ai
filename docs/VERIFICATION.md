@@ -1,134 +1,145 @@
-# KELISHUV AI tekshiruv natijalari
+# KELIŞUV AI tekşiruv natijalari
 
-2026-11-20 kuni Windows, Node.js 24.19, Chrome va `127.0.0.1:2345` muhitida tekshirildi.
+2026-11-20 kuni Windows, Node.js 24.19, Çrome va `127.0.0.1:2345` muhitida tekşirildi.
 
-## Muhandislik tekshiruvi
+## Muhandislik tekşiruvi
 
-| Tekshiruv | Natija |
+| Tekşiruv | Natija |
 | --- | --- |
-| TypeScript | `npm run typecheck` o‘tdi |
+| TypeScript | `npm run typecheck` ötdi |
 | ESLint | TypeScript recommended qoidalari, nol xato |
-| Saqlangan regressiyalar | `npm test`, 12 test o‘tdi |
-| Production build | Next.js 15.5.29 build o‘tdi |
+| Saqlangan regressiyalar | `npm test`, 12 test ötdi |
+| Production build | Next.js 15.5.29 build ötdi |
 | Dependency audit | `npm audit`, nol ma’lum zaiflik |
-| Mustaqil statik ko‘rik | Yangi backend modullari va PDF jarayoni bo‘yicha yakuniy ko‘riklar o‘tdi |
+| Mustaqil statik körik | Yangi backend modullari va PDF jarayoni böyiça yakuniy köriklar ötdi |
 
 ## API oqimlari
 
-Asosiy to‘plamda 97 tekshiruv o‘tdi. Ro‘yxatdan o‘tish, login, emailga bog‘langan taklif, mustaqil bayon, shaxsiy dalil, administrator va begona hisob ruxsati, to‘rtta taklif, mediator tanlovi, uch ishtirokchi imzosi, nusxa almashtirish, PDF/DOCX va ijro hisoboti qamraldi.
+Asosiy töplamda 97 tekşiruv ötdi. Röyxatdan ötiş, login, emailga boğlangan taklif, mustaqil bayon, şaxsiy dalil, administrator va begona hisob ruxsati, törtta taklif, mediator tanlovi, uç iştirokçi imzosi, nusxa almaştiriş, PDF/DOCX va ijro hisoboti qamraldi.
 
-Qo‘shimcha to‘plamda 41 tekshiruv o‘tdi. Nizo yakunlangandan keyingi AI roziligini qaytarish, parallel ko‘rik qaydlari, eski ijro tarixi, DOCX va PDF matni, mahalliy skan OCR hamda eslatma idempotentligi tekshirildi.
+Qöşimça töplamda 41 tekşiruv ötdi. Nizo yakunlangandan keyingi AI roziligini qaytariş, parallel körik qaydlari, eski ijro tarixi, DOCX va PDF matni, mahalliy skan OCR hamda eslatma idempotentligi tekşirildi.
 
-Ijro bo‘yicha 25 tekshiruv o‘tdi. Eski nusxaga tegishli kechikkan hisobot, arxivdagi so‘rov identifikatori, o‘zgargan dalil biriktirmasi, nusxasiz so‘rov, to‘g‘ri takroriy so‘rov va pulga oid bo‘lmagan majburiyatning dastlabki bajarilish vaqti tekshirildi.
+Ijro böyiça 25 tekşiruv ötdi. Eski nusxaga tegişli keçikkan hisobot, arxivdagi sörov identifikatori, özgargan dalil biriktirmasi, nusxasiz sörov, töğri takroriy sörov va pulga oid bölmagan majburiyatning dastlabki bajariliş vaqti tekşirildi.
 
 ## Brauzerdagi amallar
 
-- Mediator interfeys orqali PDF/DOCX kelishuv yaratdi.
-- Har bir ishtirokchi PDFning barcha sahifalarini ochdi va ixtiyoriy tasdiqladi.
-- Birinchi taraf sichqoncha bilan imzoladi, undo va clear ishlatildi.
-- Ikkinchi taraf 390px ekranda CDP touch hodisalari bilan imzoladi. Sahifa imzolash vaqtida siljimadi.
+- Mediator interfeys orqali PDF/DOCX kelişuv yaratdi.
+- Har bir iştirokçi PDFning barça sahifalarini oçdi va ixtiyoriy tasdiqladi.
+- Birinçi taraf siçqonça bilan imzoladi, undo va clear işlatildi.
+- Ikkinçi taraf 390px ekranda CDP touç hodisalari bilan imzoladi. Sahifa imzolaş vaqtida siljimadi.
 - Mediator bosim ma’lumoti berilgan pen Pointer Events bilan imzoladi.
-- Uch imzo va ularning tartibi yakuniy faylda tekshirildi.
-- 1440, 1280, 1024, 768, 390 va 360px ekranlarda tashqi gorizontal toshish kuzatilmadi.
-- 360px PDF preview 200% kattalashtirildi, uning ichida gorizontal pan ishladi.
-- Mediator narx va shahar filtrlari, e’lon qilingan qabul jadvali, sessiya bron qilish va ICS yuklash ishladi.
-- Maxfiy xabar tegishli mediatorga ko‘rindi. Qarshi taraf uchun kirish sinovi o‘tdi.
-- To‘lov hisoboti foydalanuvchi formasidan yuborildi va qabul qiluvchi taraf orqali tasdiqlandi.
-- Ma’lumot so‘rovi Sozlamalardan yuborildi va administrator javobi saqlandi.
-- O‘zbek lotin, kirill va rus tili almashtirildi. Bank hisobi forma orqali yaratildi va shu hisobga kirildi.
+- Uç imzo va ularning tartibi yakuniy faylda tekşirildi.
+- 1440, 1280, 1024, 768, 390 va 360px ekranlarda taşqi gorizontal toşiş kuzatilmadi.
+- 360px PDF preview 200% kattalaştirildi, uning içida gorizontal pan işladi.
+- Mediator narx va şahar filtrlari, e’lon qilingan qabul jadvali, sessiya bron qiliş va ICS yuklaş işladi.
+- Maxfiy xabar tegişli mediatorga körindi. Qarşi taraf uçun kiriş sinovi ötdi.
+- Tölov hisoboti foydalanuvçi formasidan yuborildi va qabul qiluvçi taraf orqali tasdiqlandi.
+- Ma’lumot sörovi Sozlamalardan yuborildi va administrator javobi saqlandi.
+- Özbek lotin, kirill va rus tili almaştirildi. Bank hisobi forma orqali yaratildi va şu hisobga kirildi.
 
-Jismoniy barmoq va stilus qurilmasi bilan apparat sinovi hali bajarilishi kerak. Avtomatlashtirilgan sensor va pen hodisalari dasturiy oqimni qamraydi.
+Jismoniy barmoq va stilus qurilmasi bilan apparat sinovi hali bajarilişi kerak. Avtomatlaştirilgan sensor va pen hodisalari dasturiy oqimni qamraydi.
 
 ## Hujjat renderi va AI
 
-Yakuniy ikki sahifali PDF PNGga render qilinib ko‘zdan kechirildi. Uch imzo, rekvizit, vaqt, nusxa raqami va xesh joylashuvi tekshirildi. Imzo ustma-ust tushishi va sahifa chegarasidan chiqishi rad etildi. DOCX xom matni, fayl xeshi va imzo tasvirlari tekshirildi.
+Yakuniy ikki sahifali PDF PNGga render qilinib közdan keçirildi. Uç imzo, rekvizit, vaqt, nusxa raqami va xeş joylaşuvi tekşirildi. Imzo ustma-ust tuşişi va sahifa çegarasidan çiqişi rad etildi. DOCX xom matni, fayl xeşi va imzo tasvirlari tekşirildi.
 
-`qwen3-vl:8b-instruct` bilan haqiqiy mahalliy tahlil va dalil ekstraksiyasi bajarildi. Ochiq tahlilda shaxsiy markerlar kuzatilmadi. Maxfiy tahlil boshqa tarafga ochilmadi. Sintetik rasm va skan PDFdan 1,200,000 so‘mlik summa ajratildi. Natija `verified=false` holatida saqlandi. Bu sinov keng o‘zbek huquqiy benchmarki hisoblanmaydi.
+`qwen3-vl:8b-instruct` bilan haqiqiy mahalliy tahlil va dalil ekstraksiyasi bajarildi. Oçiq tahlilda şaxsiy markerlar kuzatilmadi. Maxfiy tahlil boşqa tarafga oçilmadi. Sintetik rasm va skan PDFdan 1,200,000 sömlik summa ajratildi. Natija `verified=false` holatida saqlandi. Bu sinov keng özbek huquqiy bençmarki hisoblanmaydi.
 
-## Chegaralangan hujjat ishlovi
+## Çegaralangan hujjat işlovi
 
-PDF matni oqimdan 18,000 belgigacha olinadi. Jarayonning JavaScript heap chegarasi 192 MiB va vaqt chegarasi 20 soniya. Native rastrning eng uzun tomoni 1400 piksel. DOCX uchun haqiqiy ZIP oqimi va 30 MiB kengaygan hajm tekshiriladi. PNG/JPEG o‘lchami native dekodlashdan avval tekshiriladi.
+PDF matni oqimdan 18,000 belgigaça olinadi. Jarayonning JavaScript heap çegarasi 192 MiB va vaqt çegarasi 20 soniya. Native rastrning eng uzun tomoni 1400 piksel. DOCX uçun haqiqiy ZIP oqimi va 30 MiB kengaygan hajm tekşiriladi. PNG/JPEG ölçami native dekodlaşdan avval tekşiriladi.
 
-Bir sahifali, ikki MiB matni kuchli siqilgan PDF, juda katta sahifa o‘lchami, ZIP ichidagi soxta katalog sarlavhasi, noto‘g‘ri deklarativ ZIP hajmi va katta PNG sarlavhasi regressiya to‘plamiga kiritilgan.
+Bir sahifali, ikki MiB matni kuçli siqilgan PDF, juda katta sahifa ölçami, ZIP içidagi soxta katalog sarlavhasi, notöğri deklarativ ZIP hajmi va katta PNG sarlavhasi regressiya töplamiga kiritilgan.
 
 ## Accessibility
 
-Agreement preview, mediatorlar, muloqot, ijro, ro‘yxatdan o‘tish va taqdimot sahifalari axe-core WCAG 2 A/AA qoidalari bilan tekshirildi. Yakuniy olti sahifada ushbu qoidalar bo‘yicha nol xato qaytdi. Matn kontrasti to‘g‘rilandi va siljitiladigan PDF maydoni klaviatura fokusiga ochildi. Ushbu natija avtomatlashtirilgan tekshiruv doirasiga tegishli.
+Agreement preview, mediatorlar, muloqot, ijro, röyxatdan ötiş va taqdimot sahifalari axe-core WCAG 2 A/AA qoidalari bilan tekşirildi. Yakuniy olti sahifada uşbu qoidalar böyiça nol xato qaytdi. Matn kontrasti töğrilandi va siljitiladigan PDF maydoni klaviatura fokusiga oçildi. Uşbu natija avtomatlaştirilgan tekşiruv doirasiga tegişli.
 
-## Sinov ma’lumotlarini tozalash
+## Sinov ma’lumotlarini tozalaş
 
-Sinovlar yaratgan hisob, nizo, hujjat, to‘lov va bildirishnoma yozuvlari ularning aniq identifikatorlari asosida chiqarildi. Tozalashdan oldin shifrlangan zaxira olindi. Foydalanuvchiga tegishli beshta nizo, to‘rtta mavjud hisob va oldingi sessiya saqlandi. Yakuniy audit zanjiri hamda mahalliy manzil qayta tekshirildi.
+Sinovlar yaratgan hisob, nizo, hujjat, tölov va bildirişnoma yozuvlari ularning aniq identifikatorlari asosida çiqarildi. Tozalaşdan oldin şifrlangan zaxira olindi. Foydalanuvçiga tegişli beşta nizo, törtta mavjud hisob va oldingi sessiya saqlandi. Yakuniy audit zanjiri hamda mahalliy manzil qayta tekşirildi.
 
-## Tashqi xizmatlar
+## Taşqi xizmatlar
 
-ERI, OneID, real to‘lov yig‘ish va payout sozlanmagan. Jitsi tashqi uchrashuv havolasini beradi. SMTP, PostgreSQL, Redis, S3, Qdrant va Docker yo‘llari tegishli xizmat muhiti bilan alohida tekshiriladi. Qonuniy rasmiylashtirish va shaxs rekvizitlarini mediator tekshiradi. Mahalliy qo‘lda imzo vizual yozuv va audit bilan saqlanadi.
+ERI, OneID, real tölov yiğiş va payout sozlanmagan. Jitsi taşqi uçraşuv havolasini beradi. SMTP, PostgreSQL, Redis, S3, Qdrant va Docker yöllari tegişli xizmat muhiti bilan alohida tekşiriladi. Qonuniy rasmiylaştiriş va şaxs rekvizitlarini mediator tekşiradi. Mahalliy qölda imzo vizual yozuv va audit bilan saqlanadi.
 
-## Interfeys yangilanishi, 2026-11-21
+## Interfeys yangilanişi, 2026-11-21
 
-Yangi yashil va iliq oq dizayn amaldagi APIlar orqali tekshirildi. 97 API tekshiruvi, 12 saqlangan regressiya, 13 brauzer oqimi va 10 tiklash tekshiruvi o‘tdi. Keyingi amal, mobil menyu hamda administrator va mediator bo‘limlarining 360–1440px ko‘rinishlari qo‘shimcha tekshirildi.
+Yangi yaşil va iliq oq dizayn amaldagi APIlar orqali tekşirildi. 97 API tekşiruvi, 12 saqlangan regressiya, 13 brauzer oqimi va 10 tiklaş tekşiruvi ötdi. Keyingi amal, mobil menyu hamda administrator va mediator bölimlarining 360–1440px körinişlari qöşimça tekşirildi.
 
-24 sahifa va forma holatida axe-core WCAG 2 A/AA, 2.1 AA va 2.2 AA teglari bo‘yicha nol xato qaytdi. Klaviatura orqali asosiy mazmunga o‘tish, FAQ va ichida siljitiladigan jadvalning fokus olishi tekshirildi. Brauzer tekshiruvlarida `pageerror` qaytmadi. Bu natijalar avtomatlashtirilgan tekshiruv doirasiga tegishli.
+24 sahifa va forma holatida axe-core WCAG 2 A/AA, 2.1 AA va 2.2 AA teglari böyiça nol xato qaytdi. Klaviatura orqali asosiy mazmunga ötiş, FAQ va içida siljitiladigan jadvalning fokus olişi tekşirildi. Brauzer tekşiruvlarida `pageerror` qaytmadi. Bu natijalar avtomatlaştirilgan tekşiruv doirasiga tegişli.
 
-Uzilgan ro‘yxatdan o‘tish javobidan keyin kirish, qayta yuborishda bitta ariza saqlanishi, bir hisob qoralamasining boshqa hisobdan ajratilishi, muvaffaqiyatsiz taklifni tiklash va yuklanmagan hujjat nomlarini saqlash sinovdan o‘tdi. Rad etilgan so‘rovdan keyin o‘nta faylni almashtirish qoralama hajmi va tiklashini buzmasligi tekshirildi.
+Uzilgan röyxatdan ötiş javobidan keyin kiriş, qayta yuborişda bitta ariza saqlanişi, bir hisob qoralamasining boşqa hisobdan ajratilişi, muvaffaqiyatsiz taklifni tiklaş va yuklanmagan hujjat nomlarini saqlaş sinovdan ötdi. Rad etilgan sörovdan keyin önta faylni almaştiriş qoralama hajmi va tiklaşini buzmasligi tekşirildi.
 
-Production build, TypeScript, ESLint va dependency audit o‘tdi. Next.js build mavjud ESLint konfiguratsiyasida Next.js plagini aniqlanmagani haqida ogohlantirish berdi. Alohida ESLint tekshiruvi nol xato bilan yakunlandi. Yakuniy mustaqil kod ko‘rigi o‘tdi.
+Production build, TypeScript, ESLint va dependency audit ötdi. Next.js build mavjud ESLint konfiguratsiyasida Next.js plagini aniqlanmagani haqida ogohlantiriş berdi. Alohida ESLint tekşiruvi nol xato bilan yakunlandi. Yakuniy mustaqil kod körigi ötdi.
 
-Sinovga tegishli 21 hisob, 14 ish va 48 shifrlangan fayl chiqarildi. Mavjud besh ish, to‘rt hisob, bitta sessiya saqlandi. Tozalashdan oldin shifrlangan zaxira olindi. Dizayn, asset prompti va foydalanuvchi jarayonlari [redesign rejasida](REDESIGN_PLAN.md) qayd etilgan.
+Sinovga tegişli 21 hisob, 14 iş va 48 şifrlangan fayl çiqarildi. Mavjud beş iş, tört hisob, bitta sessiya saqlandi. Tozalaşdan oldin şifrlangan zaxira olindi. Dizayn, asset prompti va foydalanuvçi jarayonlari [redesign rejasida](REDESIGN_PLAN.md) qayd etilgan.
 
 ## Getsherik asosidagi dizayn va ekstraksiya
 
-Getsherik’ning ommaviy HTML manbasi IntelliScrape hosted xizmati orqali olinib, lokal Chromium’da Site Deep Clone modullari bilan o‘lchandi. To‘rtta ekran o‘lchami va 17 ta resurs saqlandi. Dastlabki to‘g‘ridan-to‘g‘ri ulanishdagi ikkita HTTPS xatosi `partial` hisobotida qayd etildi. Lokal Kelishuv capture’i to‘rtta profil, 15 resurs va nol xato bilan tugadi.
+Getsherik’ning ommaviy HTML manbasi IntelliScrape hosted xizmati orqali olinib, lokal Çromium’da Site Deep Clone modullari bilan ölçandi. Törtta ekran ölçami va 17 ta resurs saqlandi. Dastlabki töğridan-töğri ulanişdagi ikkita HTTPS xatosi `partial` hisobotida qayd etildi. Lokal Kelişuv capture’i törtta profil, 15 resurs va nol xato bilan tugadi.
 
-Yangi tipografika va shakl ko‘rinishida 13 ta brauzer flow’i, 24 ta WCAG holati, sakkizta maqsadli flow, 12 ta logotip tekshiruvi va 320 px ekrandagi uch til sinovi o‘tdi. Ro‘yxatdan o‘tishdan hujjat yuklash va murojaat yuborishgacha bo‘lgan jarayon tekshirildi. Shu tekshiruvlarda jami 54 ta avtomatik WCAG auditida nol xato qaytdi.
+Yangi tipografika va şakl körinişida 13 ta brauzer flow’i, 24 ta WCAG holati, sakkizta maqsadli flow, 12 ta logotip tekşiruvi va 320 px ekrandagi uç til sinovi ötdi. Röyxatdan ötişdan hujjat yuklaş va murojaat yuborişgaça bölgan jarayon tekşirildi. Şu tekşiruvlarda jami 54 ta avtomatik WCAG auditida nol xato qaytdi.
 
-`npm run test:design` to‘qqizta ekstraktor regressiyasini qamraydi. HTTP/fetch/iframe xatolari, kech yuklangan resurslar, bir URL’dagi turli javoblar, yo‘naltirilgan CSS ichidagi nisbiy havolalar, xato hujjat, ikki qiya chiziqli URL yo‘li, parallel natija papkasi, parallel dastlabki o‘rnatish va Git metama’lumoti xatosida jarayon yakunlanishi tekshirildi.
+`npm run test:design` töqqizta ekstraktor regressiyasini qamraydi. HTTP/fetç/iframe xatolari, keç yuklangan resurslar, bir URL’dagi turli javoblar, yönaltirilgan CSS içidagi nisbiy havolalar, xato hujjat, ikki qiya çiziqli URL yöli, parallel natija papkasi, parallel dastlabki örnatiş va Git metama’lumoti xatosida jarayon yakunlanişi tekşirildi.
 
-Production build, ESLint, TypeScript, mavjud 12 ta regressiya testi va dependency audit o‘tdi. Sinov yaratgan uch hisob, bitta ish va bitta fayl identifikatorlari bo‘yicha chiqarildi. Besh ish, to‘rt hisob va bitta sessiya, audit zanjiri hamda 14 ta sahifa manzili qayta tekshirildi. Dizayn o‘lchovlari va takrorlash buyruqlari [DESIGN.md](DESIGN.md) ichida saqlangan.
+Production build, ESLint, TypeScript, mavjud 12 ta regressiya testi va dependency audit ötdi. Sinov yaratgan uç hisob, bitta iş va bitta fayl identifikatorlari böyiça çiqarildi. Beş iş, tört hisob va bitta sessiya, audit zanjiri hamda 14 ta sahifa manzili qayta tekşirildi. Dizayn ölçovlari va takrorlaş buyruqlari [DESIGN.md](DESIGN.md) içida saqlangan.
 
-## Mediator surati va narx hamda vaqt taqqoslashi
+## Mediator surati va narx hamda vaqt taqqoslaşi
 
-Landing va ro‘yxatdan o‘tishda `mediation-meeting.png` surati yuklanishi tekshirildi. Mediatsiya va fuqarolik sudi kartalarida mavjud hisoblash funksiyalaridan olingan 800 000 hamda 2 000 000 so‘mlik qiymatlar, 30 kun va 10 kun + 1 oy bosqichlari tekshirildi. Misol summasi 50 000 000 so‘m, mediator qiymati namuna tarifi va sud qiymati davlat boji sifatida berilgan.
+Landing va röyxatdan ötişda `mediation-meeting.png` surati yuklanişi tekşirildi. Mediatsiya va fuqarolik sudi kartalarida mavjud hisoblaş funksiyalaridan olingan 800 000 hamda 2 000 000 sömlik qiymatlar, 30 kun va 10 kun + 1 oy bosqiçlari tekşirildi. Misol summasi 50 000 000 söm, mediator qiymati namuna tarifi va sud qiymati davlat boji sifatida berilgan.
 
-1440, 1024, 768, 390, 360 va 320 px ekranlarda uch til bo‘yicha 18 ta ko‘rinish tekshirildi. Narx va muddat raqamlari kamida 40 px bo‘lishi, karta ichida sig‘ishi va uchta rasmiy manba havolasi mavjudligi tekshirildi. Olti WCAG auditida nol xato qaytdi. Ro‘yxatdan o‘tishdagi yangi surat ham yuklandi. Brauzerda JavaScript xatosi qaytmadi.
+1440, 1024, 768, 390, 360 va 320 px ekranlarda uç til böyiça 18 ta köriniş tekşirildi. Narx va muddat raqamlari kamida 40 px bölişi, karta içida siğişi va uçta rasmiy manba havolasi mavjudligi tekşirildi. Olti WCAG auditida nol xato qaytdi. Röyxatdan ötişdagi yangi surat ham yuklandi. Brauzerda JavaScript xatosi qaytmadi.
 
-Production build, ESLint, TypeScript, 12 ta regressiya testi va mustaqil kod ko‘rigi o‘tdi. Audit zanjiri, 14 ta sahifa hamda mavjud besh ish, to‘rt hisob va bitta sessiya yakuniy tekshiruvdan o‘tdi.
+Production build, ESLint, TypeScript, 12 ta regressiya testi va mustaqil kod körigi ötdi. Audit zanjiri, 14 ta sahifa hamda mavjud beş iş, tört hisob va bitta sessiya yakuniy tekşiruvdan ötdi.
 
-## Telefon, huquqiy yordamchi va pullik xizmatlar kengaytmasi
+## Telefon, huquqiy yordamçi va pullik xizmatlar kengaytmasi
 
-2026-11-21 kuni production build, TypeScript, ESLint, 45 ta regressiya testi va to‘qqizta dizayn ekstraktori testi o‘tdi. Production bog‘liqliklarining `npm audit --omit=dev` tekshiruvida nol zaiflik qaytdi. Olti yo‘nalish bo‘yicha mustaqil kod ko‘rigi o‘tdi. Next.js build ESLint konfiguratsiyasidagi Next.js plagini haqida ogohlantirish berdi, alohida ESLint tekshiruvi nol xato bilan tugadi.
+2026-11-21 kuni production build, TypeScript, ESLint, 45 ta regressiya testi va töqqizta dizayn ekstraktori testi ötdi. Production boğliqliklarining `npm audit --omit=dev` tekşiruvida nol zaiflik qaytdi. Olti yönaliş böyiça mustaqil kod körigi ötdi. Next.js build ESLint konfiguratsiyasidagi Next.js plagini haqida ogohlantiriş berdi, alohida ESLint tekşiruvi nol xato bilan tugadi.
 
-Global HTTPS muhitida ikki alohida hisob bilan sakkizta guruhlangan brauzer jarayoni tekshirildi. Telefon bilan ro‘yxatdan o‘tish, ixtiyoriy email, pasport yuklash, shaxsiy maydonlar, qarshi taraf taklifi, alohida bayon va roziliklar, to‘rtta navbatdagi taklif hamda mediatorlar navbatiga o‘tish ishladi. Umumiy suhbatdagi yangi xabar boshqa hisobda yangilandi. To‘lovdan oldingi hujjat cheklovi, saqlangan qoralama, buyurtma ruxsatlari va o‘zgartirilgan maydonlarni qayta yuborish tekshirildi.
+Global HTTPS muhitida ikki alohida hisob bilan sakkizta guruhlangan brauzer jarayoni tekşirildi. Telefon bilan röyxatdan ötiş, ixtiyoriy email, pasport yuklaş, şaxsiy maydonlar, qarşi taraf taklifi, alohida bayon va roziliklar, törtta navbatdagi taklif hamda mediatorlar navbatiga ötiş işladi. Umumiy suhbatdagi yangi xabar boşqa hisobda yangilandi. Tölovdan oldingi hujjat çeklovi, saqlangan qoralama, buyurtma ruxsatlari va özgartirilgan maydonlarni qayta yuboriş tekşirildi.
 
-Kech qaytgan AI to‘ldirish javobi boshqa nizoning maydonlariga yozilmasligi va AI ajratgan shaxsiy maydonlar qayta yuklashda saqlanishi tekshirildi. Boshqa ishtirokchi yaratgan Zoom havolasi va mediator hisobi ochiq xonada paydo bo‘lishi frontenddagi boshqariladigan javoblar bilan tekshirildi. To‘lov, SMS, Face ID va Zoom adapterlarining uzilish, parallel so‘rov va qayta urinish holatlari avtomatik testlar bilan qamrab olindi.
+Keç qaytgan AI töldiriş javobi boşqa nizoning maydonlariga yozilmasligi va AI ajratgan şaxsiy maydonlar qayta yuklaşda saqlanişi tekşirildi. Boşqa iştirokçi yaratgan Zoom havolasi va mediator hisobi oçiq xonada paydo bölişi frontenddagi boşqariladigan javoblar bilan tekşirildi. Tölov, SMS, Face ID va Zoom adapterlarining uziliş, parallel sörov va qayta uriniş holatlari avtomatik testlar bilan qamrab olindi.
 
-Yordamchi sayt bo‘yicha yo‘l-yo‘riq, katalogdagi modda va Lex.uz havolalari, xato javobdan keyin qayta urinish, rus tilidagi savol va Escape tugmasi bilan yopish orqali tekshirildi. 360, 768 va 1440 px ekranlardagi yangi sahifalar hamda landing uchun 18 ta axe-core WCAG auditida nol xato qaytdi. Brauzerda JavaScript xatosi qaytmadi. Kabinet va administrator oqimlari uchun sakkizta qo‘shimcha tekshiruv va to‘qqizta WCAG auditi, narx hamda muddat taqqoslashi uchun uch tilda 18 ta ko‘rinish va oltita WCAG auditi ham o‘tdi.
+Yordamçi sayt böyiça yöl-yöriq, katalogdagi modda va Lex.uz havolalari, xato javobdan keyin qayta uriniş, rus tilidagi savol va Escape tugmasi bilan yopiş orqali tekşirildi. 360, 768 va 1440 px ekranlardagi yangi sahifalar hamda landing uçun 18 ta axe-core WCAG auditida nol xato qaytdi. Brauzerda JavaScript xatosi qaytmadi. Kabinet va administrator oqimlari uçun sakkizta qöşimça tekşiruv va töqqizta WCAG auditi, narx hamda muddat taqqoslaşi uçun uç tilda 18 ta köriniş va oltita WCAG auditi ham ötdi.
 
-Yakuniy tekshiruvdan so‘ng global namoyish muhitidagi sinov hisoblari, nizolar, buyurtmalar va uchta sinov fayli identifikatorlari bo‘yicha chiqarildi. Asosiy lokal saqlashdagi beshta hisob, beshta nizo va bitta sessiya boshlang‘ich nusxa bilan solishtirildi. Asl yozuvlarning mazmuni bo‘yicha moslik tasdiqlandi.
+Yakuniy tekşiruvdan söng global namoyiş muhitidagi sinov hisoblari, nizolar, buyurtmalar va uçta sinov fayli identifikatorlari böyiça çiqarildi. Asosiy lokal saqlaşdagi beşta hisob, beşta nizo va bitta sessiya boşlanğiç nusxa bilan soliştirildi. Asl yozuvlarning mazmuni böyiça moslik tasdiqlandi.
 
-SMS, haqiqiy biometrik tekshiruv, Payme va Zoom servis sinovlari biznes hisoblari hamda kalitlar sozlanishini kutmoqda. Face ID uchun provayderga mos bridge, bank payout uchun biznes hisob-kitob sozlamasi kerak. Ommaviy namoyish yordamchisi manbalar katalogi rejimida ishlaydi. Ulanish shartnomalari va boshlang‘ich tariflar [kengaytma rejasida](KELISHUV_EXPANSION_PLAN.md), mahsulot talablari [professional promptda](KELISHUV_MASTER_PROMPT.md) berilgan.
+SMS, haqiqiy biometrik tekşiruv, Payme va Zoom servis sinovlari biznes hisoblari hamda kalitlar sozlanişini kutmoqda. Face ID uçun provayderga mos bridge, bank payout uçun biznes hisob-kitob sozlamasi kerak. Ommaviy namoyiş yordamçisi manbalar katalogi rejimida işlaydi. Ulaniş şartnomalari va boşlanğiç tariflar [kengaytma rejasida](KELISHUV_EXPANSION_PLAN.md), mahsulot talablari [professional promptda](KELISHUV_MASTER_PROMPT.md) berilgan.
 
-## RAG yordamchi, taklif va nizoni yopish, 2026-11-21
+## RAG yordamçi, taklif va nizoni yopiş, 2026-11-21
 
-- `npm test` orqali 59 ta regressiya o‘tdi. Bepul limit, bir xil so‘rovni qayta yuborish, xatodan keyin limitni qaytarish, noto‘g‘ri cookie, Lex.uz identifikatorlari, kirill modda sarlavhalari va modeldagi manbasiz foizlar qamraldi.
-- Orama BM25 korpusdagi 25 hujjat va 7 368 moddadan qidiradi. Lokal `bge-m3` embeddinglari va `qwen3-vl:8b-instruct` javobi haqiqiy so‘rovda tekshirildi. Ish haqi haqidagi javob Mehnat kodeksining 253 va 333-moddalariga joriy Lex.uz havolalarini qaytardi.
-- Ngrok orqali yangi telefonli hisob, besh bosqichli murojaat, to‘liq HTTPS taklifini nusxalash, sahifa yangilanganda uni olish va ikkinchi tarafning ro‘yxatdan o‘tib qo‘shilishi tekshirildi.
-- Ikkala tarafning mustaqil kelishuvni tasdiqlashi, murojaatni qaytarib olish, yopilgan ish arxivini ochish va yopilgan ishga yangi xabar yozishning rad etilishi tekshirildi.
-- Har hisob uchun jami 10 ta so‘rov qabul qilindi, 11-so‘rov limit bilan qaytdi. Limit sahifa yangilanganda saqlandi va boshqa hisobga ta’sir qilmadi.
-- Mobil qo‘shilish sahifasi, yordamchi desktop sahifasi va mobil limit holatida uchta axe-core WCAG A/AA auditi xatosiz yakunlandi. Brauzerda `pageerror` qaytmadi.
-- Administrator va mediatorning mavjud loginlari ngrok manzilida tekshirildi. Rol ruxsatlari va yangi yordamchi menyusi ishladi.
-- Sinov yozuvlari aniq identifikatorlar bo‘yicha tozalandi. Boshqa yozuvlarning joriy holati va audit zanjiri tekshirildi. Lokal bazadagi mavjud yozuvlar saqlandi.
+- `npm test` orqali 59 ta regressiya ötdi. Bepul limit, bir xil sörovni qayta yuboriş, xatodan keyin limitni qaytariş, notöğri cookie, Lex.uz identifikatorlari, kirill modda sarlavhalari va modeldagi manbasiz foizlar qamraldi.
+- Orama BM25 korpusdagi 25 hujjat va 7 368 moddadan qidiradi. Lokal `bge-m3` embeddinglari va `qwen3-vl:8b-instruct` javobi haqiqiy sörovda tekşirildi. Iş haqi haqidagi javob Mehnat kodeksining 253 va 333-moddalariga joriy Lex.uz havolalarini qaytardi.
+- Ngrok orqali yangi telefonli hisob, beş bosqiçli murojaat, töliq HTTPS taklifini nusxalaş, sahifa yangilanganda uni oliş va ikkinçi tarafning röyxatdan ötib qöşilişi tekşirildi.
+- Ikkala tarafning mustaqil kelişuvni tasdiqlaşi, murojaatni qaytarib oliş, yopilgan iş arxivini oçiş va yopilgan işga yangi xabar yozişning rad etilişi tekşirildi.
+- Har hisob uçun jami 10 ta sörov qabul qilindi, 11-sörov limit bilan qaytdi. Limit sahifa yangilanganda saqlandi va boşqa hisobga ta’sir qilmadi.
+- Mobil qöşiliş sahifasi, yordamçi desktop sahifasi va mobil limit holatida uçta axe-core WCAG A/AA auditi xatosiz yakunlandi. Brauzerda `pageerror` qaytmadi.
+- Administrator va mediatorning mavjud loginlari ngrok manzilida tekşirildi. Rol ruxsatlari va yangi yordamçi menyusi işladi.
+- Sinov yozuvlari aniq identifikatorlar böyiça tozalandi. Boşqa yozuvlarning joriy holati va audit zanjiri tekşirildi. Lokal bazadagi mavjud yozuvlar saqlandi.
 
-Jonli huquqiy qidiruv va sud materiallari qamrovi [yordamchi manbalari](ASSISTANT_DATA_SOURCES.md) hujjatida ko‘rsatilgan. Tekshiruv keng qamrovli huquqiy benchmark sifatida baholanmagan.
+Jonli huquqiy qidiruv va sud materiallari qamrovi [yordamçi manbalari](ASSISTANT_DATA_SOURCES.md) hujjatida körsatilgan. Tekşiruv keng qamrovli huquqiy bençmark sifatida baholanmagan.
 
 
 ## GitHub va LexHackathon materiallari, 2026-yil 21-noyabr
 
-- Asosiy HEAD nusxasida 59 test o‘tdi. Yangilangan nusxada 64 test o‘tdi.
-- Rasmiy mediativ kelishuv shabloni, uzun rekvizitlar, shriftlar va avvalgi hujjat xeshlari tekshirildi.
-- Alohida sahifalardagi imzo bloklari uchun sarlavha joylashuvi regressiya testi dastlab xatoni takrorladi. Tuzatishdan so‘ng shu test va to‘liq to‘plam o‘tdi.
-- ESLint va TypeScript tekshiruvlari xatosiz yakunlandi.
-- Sakkiz slaydli PPTX qayta import qilindi. Izohlar, 180 soniyalik vaqt taqsimoti, jadval va hisoblar tekshirildi. Paket va joylashuv validatorlari xato hamda ogohlantirish qaytarmadi.
+- Asosiy HEAD nusxasida 59 test ötdi. Yangilangan nusxada 64 test ötdi.
+- Rasmiy mediativ kelişuv şabloni, uzun rekvizitlar, şriftlar va avvalgi hujjat xeşlari tekşirildi.
+- Alohida sahifalardagi imzo bloklari uçun sarlavha joylaşuvi regressiya testi dastlab xatoni takrorladi. Tuzatişdan söng şu test va töliq töplam ötdi.
+- ESLint va TypeScript tekşiruvlari xatosiz yakunlandi.
+- Sakkiz slaydli PPTX qayta import qilindi. Izohlar, 180 soniyalik vaqt taqsimoti, jadval va hisoblar tekşirildi. Paket va joylaşuv validatorlari xato hamda ogohlantiriş qaytarmadi.
 - Public materiallarda yangi taqdimot, slayd rasmlari, biznes dalillari va FastAPI/Qdrant sxemasining konfiguratsiya holati berilgan.
-- Production build alohida ishchi nusxada o‘tdi. Ishlab turgan namoyish yig‘masi ushbu tekshiruvda almashtirilmadi.
-- Dizayn ekstraktorining 9 regressiyasi o‘tdi. Metadata buzilgan holatda Git manbasini aniq katalogdan tekshirish qo‘shildi.
-- Yakuniy mustaqil kod ko‘rigi bloklovchi xavfsizlik yoki mantiq xatosi topmadi. Production dependency auditida 0 zaiflik qaytdi.
+- Production build alohida işçi nusxada ötdi. Işlab turgan namoyiş yiğmasi uşbu tekşiruvda almaştirilmadi.
+- Dizayn ekstraktorining 9 regressiyasi ötdi. Metadata buzilgan holatda Git manbasini aniq katalogdan tekşiriş qöşildi.
+- Yakuniy mustaqil kod körigi bloklovçi xavfsizlik yoki mantiq xatosi topmadi. Production dependency auditida 0 zaiflik qaytdi.
+
+## Yangi yozuv, 2026-yil 21-noyabr
+
+- Özbekça interfeys `Ğ/ğ`, `Ö/ö`, `Ş/ş` va `Ç/ç` harflariga moslandi. Logo, 1 755 ta tarjima qiymati, AI javoblari, huquqiy manba kartalari va loyiha materiallari tekşirildi.
+- 66 ta regressiya testi ötdi. Yangi yozuvdagi şahar nomlari, nizo turi, huquqiy qidiruv, katta harflar, turli apostroflar, uzun Unicode matnlar, email, URL va kod belgilarining yaxlitligi qamraldi.
+- AI modeliga yuboriladigan savol va kontekst identifikatorlari regressiya orqali tekşirildi. Qidiriş uçun alohida moslaştirilgan matn işlatiladi.
+- Production build, ESLint va TypeScript tekşiruvlari ötdi.
+- Landing, foydalanuvçi, mediator, admin, hujjatlar va şaxsni tasdiqlaş sahifalaridagi olti axe-core WCAG A/AA auditi nol xato qaytardi. Rus tiliga va özbekçaga qaytiş, 390px mobil ekran va logo matnining siğişi tekşirildi.
+- Sakkiz slaydli PPTX, sakkiz sahifali taqdimot PDF va sakkiz sahifali platforma PDF qayta çiqarildi. Harflar, sahifalar, diagrammalar, havolalar va public nusxalarning xeşlari tekşirildi.
+- GitHub tekşiruvida kod repozitoriysi public holatda ekanligi aniqlandi. Avvalgi topshiriqqa muvofiq u private holatiga qaytarildi. Taqdimot repozitoriysi public holatda.
+- Yangi production yiğmasi 2345 va 2346 portlariga joylandi. Lokal sahifalar va ngrok’dagi HTTPS sahifa 200 javob berdi. Uçala manzilda yangi logo va sarlavha, nol brauzer xatosi tasdiqlandi.

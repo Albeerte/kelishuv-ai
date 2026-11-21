@@ -1,7 +1,7 @@
 {
-  "name": "KELISHUV AI",
-  "short_name": "KELISHUV",
-  "description": "Nizodan kelishuvgacha — bitta platformada",
+  "name": "KELIŞUV AI",
+  "short_name": "KELIŞUV",
+  "description": "Nizodan kelişuvgaça — bitta platformada",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8f8f2",

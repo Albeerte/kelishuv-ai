@@ -3,6 +3,7 @@ import articleCatalog from "@/data/legal-articles.json";
 import { COMMISSION_PERCENT } from "./mediation";
 import type { Analysis, CourtCosts, DisputeType, LegalSource } from "./types";
 import { TYPE_LABELS } from "./types";
+import { toTraditionalUzbek } from "./uzbek-alphabet";
 
 export const DISCLAIMER =
   "KELISHUV AI huquqiy ma’lumot beradi. Individual yuridik maslahat uchun malakali advokatga murojaat qiling. Xarajat va muddatlar taxminiy.";
@@ -18,7 +19,7 @@ export const REQUIRED_DOCS = legalData.documents as Record<
 >;
 
 function normalizeUzbek(text: string) {
-  return text.toLocaleLowerCase().replace(/[’‘`ʻʼ]/g, "'");
+  return toTraditionalUzbek(text).toLocaleLowerCase().replace(/[’‘`ʻʼ]/g, "'");
 }
 export function isCriminal(description: string) {
   return /qotillik|o'g'rilik|zo'ravonlik|jinoiy|tahdid|қотиллик|ўғирлик|зўравонлик|жиноий|таҳдид|убийств|краж|насили|угроз|уголовн/.test(

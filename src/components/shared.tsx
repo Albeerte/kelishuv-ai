@@ -29,16 +29,22 @@ export function Brand({
   href?: string;
 }) {
   return (
-    <Link className={`brand${compact ? " brand-compact" : ""}`} href={href}>
-      <span className="brand-visual">
-        <Image
-          src="/images/kelishuv-logo.png"
-          alt="Kelishuv"
-          width={1774}
-          height={887}
-          sizes={compact ? "160px" : "(max-width: 700px) 200px, 320px"}
-          quality={90}
-        />
+    <Link className={`brand${compact ? " brand-compact" : ""}`} href={href} aria-label="Kelişuv">
+      <span className="brand-visual brand-modern">
+        <span className="brand-symbol" aria-hidden="true">
+          <Image
+            src="/images/kelishuv-logo.png"
+            alt=""
+            width={1774}
+            height={887}
+            sizes="480px"
+            quality={90}
+          />
+        </span>
+        <span className="brand-wordmark">
+          <strong><LocalizedText>Kelişuv</LocalizedText></strong>
+          <small><LocalizedText>Nizolarni tinç yöl bilan hal qiling</LocalizedText></small>
+        </span>
       </span>
     </Link>
   );
@@ -191,7 +197,7 @@ export function CaseTable({
                     <FileText size={19} />
                   </span>
                   <span>
-                    <strong>{record.title}</strong>
+                    <strong>{record.demo ? <LocalizedText>{record.title}</LocalizedText> : record.title}</strong>
                     <small>
                       {record.number}
                       <i />

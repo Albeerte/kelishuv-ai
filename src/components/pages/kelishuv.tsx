@@ -818,7 +818,7 @@ function AnalysisWorkspace({
                     </h4>
                     <ul>
                       {review.missingInformation.map((item) => (
-                        <li key={item}>{item}</li>
+                        <li key={item}><LocalizedText>{item}</LocalizedText></li>
                       ))}
                     </ul>
                   </div>
@@ -828,7 +828,7 @@ function AnalysisWorkspace({
                     </h4>
                     <ul>
                       {review.disputedFacts.map((item) => (
-                        <li key={item}>{item}</li>
+                        <li key={item}><LocalizedText>{item}</LocalizedText></li>
                       ))}
                     </ul>
                   </div>
@@ -842,7 +842,7 @@ function AnalysisWorkspace({
                     </h4>
                     <ul>
                       {review.contradictions.map((item) => (
-                        <li key={item}>{item}</li>
+                        <li key={item}><LocalizedText>{item}</LocalizedText></li>
                       ))}
                     </ul>
                   </>
@@ -853,7 +853,7 @@ function AnalysisWorkspace({
                 </p>
                 {review.warnings.map((item) => (
                   <p className="ai-limit" key={item}>
-                    {item}
+                    <LocalizedText>{item}</LocalizedText>
                   </p>
                 ))}
               </div>
@@ -1065,12 +1065,12 @@ function AnalysisWorkspace({
                 </span>
                 <ul>
                   {[...review.observations, ...review.questions].map((item) => (
-                    <li key={item}>{item}</li>
+                    <li key={item}><LocalizedText>{item}</LocalizedText></li>
                   ))}
                 </ul>
                 {review.warnings.map((item) => (
                   <p className="ai-limit" key={item}>
-                    {item}
+                    <LocalizedText>{item}</LocalizedText>
                   </p>
                 ))}
               </article>
@@ -2372,13 +2372,13 @@ function ExecutionWorkspace({
                 </strong>
                 <p>
                   <LocalizedText>Tasdiqlangan to‘lov</LocalizedText>{" "}
-                  {money(totals.paid)} UZS ·{" "}
+                  {money(totals.paid)} <LocalizedText>UZS ·</LocalizedText>{" "}
                   <LocalizedText>Qoldiq</LocalizedText>{" "}
-                  {money(totals.remaining)} UZS
-                </p>
+                  {money(totals.remaining)} <LocalizedText>UZS
+                </LocalizedText></p>
                 {previous.reports.map((report) => (
                   <p key={report.id}>
-                    {report.reference} · {money(report.amount)} UZS ·{" "}
+                    {report.reference} · {money(report.amount)} <LocalizedText>UZS ·</LocalizedText>{" "}
                     {fullDate(report.reportedAt)}
                   </p>
                 ))}
@@ -3041,7 +3041,7 @@ export function IntegrationAdminPage() {
             <div className="panel-body">
               {admin.data.templates.map((template) => (
                 <p key={template.id}>
-                  {template.name} <LocalizedText>· </LocalizedText>
+                  <LocalizedText>{template.name}</LocalizedText> <LocalizedText>· </LocalizedText>
                   <LocalizedText>Mediator tekshiruvi bilan</LocalizedText>{" "}
                   <LocalizedText>·</LocalizedText>{" "}
                   <a href={template.source} target="_blank" rel="noreferrer">
@@ -3056,8 +3056,8 @@ export function IntegrationAdminPage() {
                 {admin.data.sources.map((source) => (
                   <p key={source.id}>
                     <a href={source.url} target="_blank" rel="noreferrer">
-                      {source.title} <LocalizedText>· </LocalizedText>
-                      {source.article}
+                      <LocalizedText>{source.title}</LocalizedText> <LocalizedText>· </LocalizedText>
+                      <LocalizedText>{source.article}</LocalizedText>
                     </a>{" "}
                     <LocalizedText>· </LocalizedText>
                     {source.editionDate || source.verifiedAt}

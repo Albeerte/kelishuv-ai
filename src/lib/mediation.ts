@@ -1,3 +1,4 @@
+import { toTraditionalUzbek } from "./uzbek-alphabet";
 import type {
   AppData,
   CaseDocument,
@@ -21,7 +22,7 @@ export class MediationError extends Error {
 }
 
 export function normalizeCity(value: string = "") {
-  return value
+  return toTraditionalUzbek(value)
     .normalize("NFKC")
     .toLocaleLowerCase()
     .replace(/[’‘`ʻʼ]/g, "'")

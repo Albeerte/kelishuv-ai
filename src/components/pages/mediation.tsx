@@ -83,20 +83,20 @@ export function LegalGuide({ guidance }: { guidance?: LegalGuidance }) {
           <h2>
             <LocalizedText>Qaysi yo‘l mos keladi?</LocalizedText>
           </h2>
-          <p>{guidance.summary}</p>
+          <p><LocalizedText>{guidance.summary}</LocalizedText></p>
         </div>
         <ShieldCheck size={23} />
       </div>
-      <p className="court-direction">{guidance.court}</p>
+      <p className="court-direction"><LocalizedText>{guidance.court}</LocalizedText></p>
       <div className="forum-grid">
         {guidance.options.map((option) => (
           <article
             className={`forum-card forum-${option.availability.toLowerCase()}`}
             key={option.id}
           >
-            <span className="forum-status">{labels[option.availability]}</span>
-            <h3>{option.title}</h3>
-            <p>{option.reason}</p>
+            <span className="forum-status"><LocalizedText>{labels[option.availability]}</LocalizedText></span>
+            <h3><LocalizedText>{option.title}</LocalizedText></h3>
+            <p><LocalizedText>{option.reason}</LocalizedText></p>
             <details>
               <summary>
                 <LocalizedText>Talablar va keyingi qadamlar</LocalizedText>
@@ -115,8 +115,8 @@ export function LegalGuide({ guidance }: { guidance?: LegalGuidance }) {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {source.title} <LocalizedText>· </LocalizedText>
-                  {source.article}
+                  <LocalizedText>{source.title}</LocalizedText> <LocalizedText>· </LocalizedText>
+                  <LocalizedText>{source.article}</LocalizedText>
                 </a>
               ))}
             </div>
@@ -263,9 +263,9 @@ export function CaseMediationPanel({
           </p>
         </div>
         <span className="category-pill">
-          {hasBothConsents(record)
+          <LocalizedText>{hasBothConsents(record)
             ? "Ikkala taraf rozilik bergan"
-            : "Ikki taraf roziligi"}
+            : "Ikki taraf roziligi"}</LocalizedText>
         </span>
       </div>
       <div className="mediation-milestones">
@@ -282,7 +282,7 @@ export function CaseMediationPanel({
         ].map((step) => (
           <span className={step.done ? "done" : ""} key={step.label}>
             <CheckCircle2 size={16} />
-            {step.label}
+            <LocalizedText>{step.label}</LocalizedText>
           </span>
         ))}
       </div>
@@ -381,9 +381,9 @@ export function CaseMediationPanel({
                 </button>
               )}
               <Button disabled={busy || record.analysis.criminal} type="submit">
-                {busy
+                <LocalizedText>{busy
                   ? "Tayyorlanmoqda..."
-                  : "Shaxsiy taklif havolasini yaratish"}
+                  : "Shaxsiy taklif havolasini yaratish"}</LocalizedText>
               </Button>
             </form>
             {invitation && (
@@ -442,9 +442,9 @@ export function CaseMediationPanel({
                 <div>
                   <strong>{item.name}</strong>
                   <span>
-                    {item.consent
+                    <LocalizedText>{item.consent
                       ? "Yo‘naltirishga rozilik berdi"
-                      : "Rozilik kutilmoqda"}
+                      : "Rozilik kutilmoqda"}</LocalizedText>
                   </span>
                   {item.consent && (
                     <small>
@@ -847,11 +847,11 @@ function MediatorDossier({
             <p className="call-history-row" key={call.id}>
               {fullDate(call.at)} <LocalizedText>· </LocalizedText>
               {timeOf(call.at)} <LocalizedText>·</LocalizedText>{" "}
-              {call.outcome === "SPOKE"
+              <LocalizedText>{call.outcome === "SPOKE"
                 ? "Suhbat bo‘ldi"
                 : call.outcome === "NO_ANSWER"
                   ? "Javob bermadi"
-                  : "Uchrashuv kelishildi"}
+                  : "Uchrashuv kelishildi"}</LocalizedText>
               <span>{call.note}</span>
             </p>
           ))}
@@ -915,9 +915,9 @@ function MediatorDossier({
               <LocalizedText>Tushum qo‘lda qayd etilgan · </LocalizedText>
               {dossier.payment.reference}
               <LocalizedText>. Komissiya</LocalizedText>{" "}
-              {dossier.payment.commissionStatus === "SETTLED"
+              <LocalizedText>{dossier.payment.commissionStatus === "SETTLED"
                 ? "to‘langan deb tasdiqlangan"
-                : "to‘lanishi kutilmoqda"}
+                : "to‘lanishi kutilmoqda"}</LocalizedText>
               <LocalizedText>.</LocalizedText>
             </p>
           ) : (
@@ -1089,9 +1089,9 @@ function AgreementForm({
           !hasMutualAppointment(record)
         }
       >
-        {kind === "SETTLEMENT"
+        <LocalizedText>{kind === "SETTLEMENT"
           ? "Kelishuvni tasdiqlash va yakunlash"
-          : "Tartib-taomil kelishuvini qayd etish"}
+          : "Tartib-taomil kelishuvini qayd etish"}</LocalizedText>
       </Button>
     </form>
   );
@@ -1147,7 +1147,7 @@ export function InvitationPage({ token }: { token: string }) {
             </h1>
             <p>
               {preview.data.number} <LocalizedText>· </LocalizedText>
-              {TYPE_LABELS[preview.data.type]}
+              <LocalizedText>{TYPE_LABELS[preview.data.type]}</LocalizedText>
             </p>
             <p>
               {preview.data.city} <LocalizedText>· </LocalizedText>
@@ -1172,9 +1172,9 @@ export function InvitationPage({ token }: { token: string }) {
                   {profile.data.user.phone || profile.data.user.email}
                 </p>
                 <Button disabled={busy} onClick={join}>
-                  {busy
+                  <LocalizedText>{busy
                     ? "Ochilmoqda..."
-                    : "Ikkinchi taraf sifatida qo‘shilish"}
+                    : "Ikkinchi taraf sifatida qo‘shilish"}</LocalizedText>
                 </Button>
                 {profile.data.demo && profile.data.localDemo && (
                   <Button
@@ -1297,11 +1297,11 @@ export function MediatorApplicationPage() {
           </h2>
           {previous && (
             <span className="category-pill">
-              {previous.status === "PENDING"
+              <LocalizedText>{previous.status === "PENDING"
                 ? "Tekshiruv kutilmoqda"
                 : previous.status === "REJECTED"
                   ? "Tuzatish talab qilinadi"
-                  : "Tasdiqlangan"}
+                  : "Tasdiqlangan"}</LocalizedText>
             </span>
           )}
         </div>
@@ -1443,7 +1443,7 @@ export function MediatorApplicationPage() {
             </p>
           )}
           <Button disabled={busy || !specializations.length} type="submit">
-            {busy ? "Yuborilmoqda..." : "Arizani tekshiruvga yuborish"}
+            <LocalizedText>{busy ? "Yuborilmoqda..." : "Arizani tekshiruvga yuborish"}</LocalizedText>
           </Button>
         </form>
         <p className="application-law">
@@ -1699,9 +1699,9 @@ export function PaymentLedger({
                     <LocalizedText>so‘m</LocalizedText>
                   </td>
                   <td>
-                    {payment.commissionStatus === "SETTLED"
+                    <LocalizedText>{payment.commissionStatus === "SETTLED"
                       ? "To‘langan, qo‘lda tasdiqlangan"
-                      : "To‘lanishi kutilmoqda"}
+                      : "To‘lanishi kutilmoqda"}</LocalizedText>
                     {admin && payment.commissionStatus === "DUE" && (
                       <Button
                         variant="outline"

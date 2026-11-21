@@ -1,39 +1,41 @@
-# KELISHUV AI LAWAAA AI TEAM
+# KELIŞUV AI LAWAAA AI TEAM
 
 
-O‘zbekiston uchun mahalliy mediatsiya va nizolarni hal qilish platformasi. Ilova `http://localhost:2345` manzilida ishlaydi.
+Özbekiston uçun mahalliy mediatsiya va nizolarni hal qiliş platformasi. Ilova `http://localhost:2345` manzilida işlaydi.
 
-![Kelishuv platformasining taqdimot sahifasi](docs/media/landing.png)
+![Kelişuv platformasining taqdimot sahifasi](docs/media/landing.png)
 
-[Ommaviy taqdimot](https://github.com/Albeerte/kelishuv-ai-showcase) · [Rasmli PDF](output/pdf/Kelishuv-platforma.pdf) · [Vaqtinchalik namoyish](https://armadillo-writing-sanctuary.ngrok-free.dev/welcome)
+[Ommaviy taqdimot](https://github.com/Albeerte/kelishuv-ai-showcase) · [Rasmli PDF](output/pdf/Kelishuv-platforma.pdf) · [Vaqtinçalik namoyiş](https://armadillo-writing-sanctuary.ngrok-free.dev/welcome)
 
-Muallif va loyiha egasi Abduxoliq Solijonov. Manba kodi private repozitoriyda saqlanadi. Public taqdimotda interfeys rasmlari, tizim arxitekturasi, lokal model va loyiha haqida ma’lumot berilgan. Namoyish havolasi kompyuter va tunnel ishlayotgan paytda faol.
+Muallif va loyiha egasi Abduxoliq Solijonov. Manba kodi private repozitoriyda saqlanadi. Public taqdimotda interfeys rasmlari, tizim arxitekturasi, lokal model va loyiha haqida ma’lumot berilgan. Namoyiş havolasi kompyuter va tunnel işlayotgan paytda faol.
 
 ## LexHackathon 2026 taqdimoti
 
-[3 daqiqalik PowerPoint](docs/presentation/Kelishuv-LexHackathon-2026.pptx) · [PDF ko‘rinishi](docs/presentation/Kelishuv-LexHackathon-2026.pdf) · [Biznes modeli va manbalar](docs/PITCH_EVIDENCE.md)
+[3 daqiqalik PowerPoint](docs/presentation/Kelishuv-LexHackathon-2026.pptx) · [PDF körinişi](docs/presentation/Kelishuv-LexHackathon-2026.pdf) · [Biznes modeli va manbalar](docs/PITCH_EVIDENCE.md)
 
-Taqdimot shablondagi sakkiz mavzuni qamraydi. Nutq matni PowerPoint izohlarida 180 soniyaga taqsimlangan. Muammo bayoni loyiha egasining qariyb 10 mediator bilan dastlabki suhbatlari, bozor dalillari esa Oliy sud va Adliya vazirligi manbalariga tayangan. Taqdim etilgan xakaton qoidalarida final uchun 3 daqiqa nutq, 2 daqiqa demo va 2 daqiqa savol-javob belgilangan.
+Taqdimot şablondagi sakkiz mavzuni qamraydi. Nutq matni PowerPoint izohlarida 180 soniyaga taqsimlangan. Muammo bayoni loyiha egasining qariyb 10 mediator bilan dastlabki suhbatlari, bozor dalillari esa Oliy sud va Adliya vazirligi manbalariga tayangan. Taqdim etilgan xakaton qoidalarida final uçun 3 daqiqa nutq, 2 daqiqa demo va 2 daqiqa savol-javob belgilangan.
 
-Bozor ssenariylari, namunaviy gonorar, xarajat va pilot hajmlari tekshiriladigan faraz yoki maqsad sifatida berilgan. Boshlang‘ich model mediator belgilaydigan narx va 15% platforma ulushiga asoslanadi.
+Bozor ssenariylari, namunaviy gonorar, xarajat va pilot hajmlari tekşiriladigan faraz yoki maqsad sifatida berilgan. Boşlanğiç model mediator belgilaydigan narx va 15% platforma uluşiga asoslanadi.
 
 ## Interfeys
 
-Kabinetda asosiy amal “Yangi muammo boshlash” tugmasidir. Yirik matn, yashil brend, iliq fon va bosqichli jarayon foydalanuvchiga keyingi qadamni ko‘rsatadi. Ekran rasmlari ilovaning haqiqiy interfeysidan, namunaviy ma’lumotlar bilan olingan.
+Özbekça interfeys va loyiha materiallari foydalanuvçi yuborgan harflar namunasiga mos yoziladi. `G‘/g‘ → Ğ/ğ`, `O‘/o‘ → Ö/ö`, `Sh/sh → Ş/ş` va `Ch/ch → Ç/ç` almaştirişlari menyu, xabar, logo, AI javobi va taqdimotlarda qöllanadi. Qidiruv har ikkala yozuvdagi sörovlarni qabul qiladi.
 
-| Foydalanuvchi | Mediator |
+Kabinetda asosiy amal “Yangi muammo boşlaş” tugmasidir. Yirik matn, yaşil brend, iliq fon va bosqiçli jarayon foydalanuvçiga keyingi qadamni körsatadi. Ekran rasmlari ilovaning haqiqiy interfeysidan, namunaviy ma’lumotlar bilan olingan.
+
+| Foydalanuvçi | Mediator |
 | --- | --- |
-| ![Foydalanuvchi kabineti](docs/media/dashboard.png) | ![Mediator kabineti](docs/media/mediator.png) |
+| ![Foydalanuvçi kabineti](docs/media/dashboard.png) | ![Mediator kabineti](docs/media/mediator.png) |
 
-| Administrator | Huquqiy yordamchi |
+| Administrator | Huquqiy yordamçi |
 | --- | --- |
-| ![Administrator paneli](docs/media/admin.png) | ![Lex.uz manbalari bilan yordamchi](docs/media/assistant.png) |
+| ![Administrator paneli](docs/media/admin.png) | ![Lex.uz manbalari bilan yordamçi](docs/media/assistant.png) |
 
-![Muammodan kelishuvgacha bo‘lgan jarayon](docs/media/workflow.png)
+![Muammodan kelişuvgaça bölgan jarayon](docs/media/workflow.png)
 
-## Ishga tushirish
+## Işga tuşiriş
 
-Node.js 24.19 va Python 3.14 bilan tekshirildi. Frontend, API, hujjat yaratish va shifrlangan saqlash Node jarayonida ishlaydi.
+Node.js 24.19 va Python 3.14 bilan tekşirildi. Frontend, API, hujjat yaratiş va şifrlangan saqlaş Node jarayonida işlaydi.
 
 ```powershell
 npm install
@@ -43,37 +45,37 @@ npm run build
 npm start
 ```
 
-Ishlab chiqish uchun `npm run dev` ishlatiladi. Ikkala server buyrug‘i `127.0.0.1:2345` ga bog‘lanadi. `.env.local` ichidagi `LOCAL_DEMO=true` namuna hisoblarini yoqadi.
+Işlab çiqiş uçun `npm run dev` işlatiladi. Ikkala server buyruği `127.0.0.1:2345` ga boğlanadi. `.env.local` içidagi `LOCAL_DEMO=true` namuna hisoblarini yoqadi.
 
 - [Taqdimot sahifasi](http://localhost:2345/welcome)
-- [Foydalanuvchi kabineti](http://localhost:2345/)
-- [Ro‘yxatdan o‘tish](http://localhost:2345/auth/register)
+- [Foydalanuvçi kabineti](http://localhost:2345/)
+- [Röyxatdan ötiş](http://localhost:2345/auth/register)
 - [Mediatorlar](http://localhost:2345/mediators)
 
-Sozlamalarda fuqaro, ikkinchi taraf, mediator va administrator namuna hisoblari mavjud. Shaxsiy ro‘yxatdan o‘tgan foydalanuvchi o‘z hisobiga kiradi. Mediator arizasi administrator tomonidan tekshiriladi. Tashkilot va bank hisoblari qo‘llanadi.
+Sozlamalarda fuqaro, ikkinçi taraf, mediator va administrator namuna hisoblari mavjud. Şaxsiy röyxatdan ötgan foydalanuvçi öz hisobiga kiradi. Mediator arizasi administrator tomonidan tekşiriladi. Taşkilot va bank hisoblari qöllanadi.
 
-## Ishlaydigan MVP
+## Işlaydigan MVP
 
-1. Foydalanuvchi nizo, shahar, talab summasi va dalillarini kiritadi.
-2. Ikkinchi taraf telefon yoki emailga bog‘langan shaxsiy taklif orqali mos hisobidan qo‘shiladi. Havola to‘liq manzil bilan yaratiladi va sahifa yangilanganda qayta tiklanadi.
-3. Har bir taraf ochiq va maxfiy bayonini, mahalliy va tashqi AI roziligini mustaqil saqlaydi.
-4. Ish maydonidagi AI tahlili ochiq bayon va ulashilgan dalillardan tayyorlanadi. Yangi murojaatda to‘rtta taklif navbat bilan ko‘rsatiladi, har bosqichda ikki tarafning mustaqil javobi qayd etiladi.
-5. Ikki taraf yo‘naltirishga rozilik bergach, shahar va yo‘nalishiga mos mediator nizoni navbatda ko‘radi. Mediator qabul qiladi, qo‘ng‘iroq qaydini va ish rejasini tuzadi. Ikkala taraf mediatorni tasdiqlaydi.
-6. Mediator yozma tartib-taomil kelishuvini tayyorlaydi. Birinchi taraf, ikkinchi taraf va mediator navbat bilan imzolaydi.
-7. Sessiya belgilanadi. Umumiy va mediator bilan maxfiy xabarlar mavjud. Kalendar uchun ICS yuklanadi.
-8. Mediator yakuniy kelishuv, rekvizitlar, jadval va majburiyatlarni tayyorlaydi. Uch ishtirokchi PDFni ko‘rib, mustaqil imzolaydi.
-9. Imzolar PDF va DOCX ichiga joylashtiriladi. Server nusxa, mazmun xeshi, fayl xeshi, vaqt va auditni saqlaydi. Tahrir yangi imzolash jarayonini ochadi.
-10. Ijro sahifasi kelishilgan summa, qabul qiluvchi tasdiqlagan to‘lov, qoldiq, muddat va bajarish tarixini ko‘rsatadi. To‘lovchi hisobot beradi, oluvchi uni tasdiqlaydi yoki qaytaradi.
-11. Telefon bilan ro‘yxatdan o‘tish, shifrlangan pasport yuklash, AI orqali maydon taklifi va Face ID provayderiga ulanish jarayoni mavjud.
-12. Hujjat studiyasi tarif, shaxsiy qoralama, tasdiqlangan to‘lovdan keyingi AI to‘ldirish va DOCX yuklashni birlashtiradi. Har sahifadagi yordamchi sayt yo‘riqnomasi va Lex.uz manbalarini ko‘rsatadi.
-13. Kabinetdagi AI yordamchida har hisob uchun jami 10 ta bepul so‘rov mavjud. RAG 25 hujjatdagi 7 368 moddani Orama BM25 va lokal BGE-M3 bilan qidiradi. Tanlangan moddalar Lex.uz dan tekshiriladi, javob Qwen bilan yaratiladi. Oliy sudning ochiq materiallari va Plenum qarorlari qo‘shimcha manba bo‘ladi. [Manbalar, litsenziyalar va qamrov](docs/ASSISTANT_DATA_SOURCES.md)
-14. Taraf murojaatini qaytarib olishi yoki mustaqil kelishuv sababli yopishni so‘rashi mumkin. Ikkinchi holatda qo‘shilgan qarshi taraf ham tasdiqlaydi. Tarix va hujjatlar saqlanadi.
+1. Foydalanuvçi nizo, şahar, talab summasi va dalillarini kiritadi.
+2. Ikkinçi taraf telefon yoki emailga boğlangan şaxsiy taklif orqali mos hisobidan qöşiladi. Havola töliq manzil bilan yaratiladi va sahifa yangilanganda qayta tiklanadi.
+3. Har bir taraf oçiq va maxfiy bayonini, mahalliy va taşqi AI roziligini mustaqil saqlaydi.
+4. Iş maydonidagi AI tahlili oçiq bayon va ulaşilgan dalillardan tayyorlanadi. Yangi murojaatda törtta taklif navbat bilan körsatiladi, har bosqiçda ikki tarafning mustaqil javobi qayd etiladi.
+5. Ikki taraf yönaltirişga rozilik bergaç, şahar va yönalişiga mos mediator nizoni navbatda köradi. Mediator qabul qiladi, qönğiroq qaydini va iş rejasini tuzadi. Ikkala taraf mediatorni tasdiqlaydi.
+6. Mediator yozma tartib-taomil kelişuvini tayyorlaydi. Birinçi taraf, ikkinçi taraf va mediator navbat bilan imzolaydi.
+7. Sessiya belgilanadi. Umumiy va mediator bilan maxfiy xabarlar mavjud. Kalendar uçun ICS yuklanadi.
+8. Mediator yakuniy kelişuv, rekvizitlar, jadval va majburiyatlarni tayyorlaydi. Uç iştirokçi PDFni körib, mustaqil imzolaydi.
+9. Imzolar PDF va DOCX içiga joylaştiriladi. Server nusxa, mazmun xeşi, fayl xeşi, vaqt va auditni saqlaydi. Tahrir yangi imzolaş jarayonini oçadi.
+10. Ijro sahifasi kelişilgan summa, qabul qiluvçi tasdiqlagan tölov, qoldiq, muddat va bajariş tarixini körsatadi. Tölovçi hisobot beradi, oluvçi uni tasdiqlaydi yoki qaytaradi.
+11. Telefon bilan röyxatdan ötiş, şifrlangan pasport yuklaş, AI orqali maydon taklifi va Face ID provayderiga ulaniş jarayoni mavjud.
+12. Hujjat studiyasi tarif, şaxsiy qoralama, tasdiqlangan tölovdan keyingi AI töldiriş va DOCX yuklaşni birlaştiradi. Har sahifadagi yordamçi sayt yöriqnomasi va Lex.uz manbalarini körsatadi.
+13. Kabinetdagi AI yordamçida har hisob uçun jami 10 ta bepul sörov mavjud. RAG 25 hujjatdagi 7 368 moddani Orama BM25 va lokal BGE-M3 bilan qidiradi. Tanlangan moddalar Lex.uz dan tekşiriladi, javob Qwen bilan yaratiladi. Oliy sudning oçiq materiallari va Plenum qarorlari qöşimça manba böladi. [Manbalar, litsenziyalar va qamrov](docs/ASSISTANT_DATA_SOURCES.md)
+14. Taraf murojaatini qaytarib olişi yoki mustaqil kelişuv sababli yopişni söraşi mumkin. Ikkinçi holatda qöşilgan qarşi taraf ham tasdiqlaydi. Tarix va hujjatlar saqlanadi.
 
-O‘zbek lotin, o‘zbek kirill va rus tillari tanlanadi. Mobil menyu, PDF kattalashtirish, sensor imzo, undo, clear, preview, imzo joylarini surish va o‘lchamini kiritish mavjud. Avvalgi nizolar va hujjatlar bilan moslik saqlangan.
+Özbek lotin, özbek kirill va rus tillari tanlanadi. Mobil menyu, PDF kattalaştiriş, sensor imzo, undo, clear, preview, imzo joylarini suriş va ölçamini kiritiş mavjud. Avvalgi nizolar va hujjatlar bilan moslik saqlangan.
 
 ## Mahalliy AI
 
-Ushbu kompyuterda mavjud Ollama va `qwen3-vl:8b-instruct` tanlandi. Provayder holati ilovada ko‘rinadi. Qwen bilan ochiq tahlil, alohida maxfiy tahlil, rasm va skan PDF ekstraksiyasi haqiqiy lokal so‘rovlar orqali tekshirildi.
+Uşbu kompyuterda mavjud Ollama va `qwen3-vl:8b-instruct` tanlandi. Provayder holati ilovada körinadi. Qwen bilan oçiq tahlil, alohida maxfiy tahlil, rasm va skan PDF ekstraksiyasi haqiqiy lokal sörovlar orqali tekşirildi.
 
 ```dotenv
 AI_PROVIDER=OLLAMA
@@ -82,55 +84,55 @@ AI_MODEL=qwen3-vl:8b-instruct
 AI_EMBEDDING_MODEL=bge-m3
 ```
 
-`ollama list` orqali ushbu muhitda model mavjudligi qayta tekshirildi. Model adapteri matn va tasvirlarni qabul qiladi, strukturali javob serverda Zod bilan tekshiriladi. Asosiy foydalanish yo‘llari bayon tahlili, yetishmayotgan faktlarni aniqlash va hujjatdan ma’lumot ajratishdir. [Qwen rasmiy model kartasi](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct), [Ollama chat API](https://docs.ollama.com/api/chat)
+`ollama list` orqali uşbu muhitda model mavjudligi qayta tekşirildi. Model adapteri matn va tasvirlarni qabul qiladi, strukturali javob serverda Zod bilan tekşiriladi. Asosiy foydalaniş yöllari bayon tahlili, yetişmayotgan faktlarni aniqlaş va hujjatdan ma’lumot ajratişdir. [Qwen rasmiy model kartasi](https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct), [Ollama çat API](https://docs.ollama.com/api/chat)
 
 ![Mahalliy AI va huquqiy manba oqimi](docs/media/local-ai.png)
 
-### TATU serveridagi 14 soatlik o‘qitish tajribasi
+### TATU serveridagi 14 soatlik öqitiş tajribasi
 
-Loyiha jamoasi taqdim etgan ma’lumotga ko‘ra, TATU serverida Lex.uz va boshqa huquqiy saytlardan tayyorlangan ma’lumotlar asosida **14 soatlik model o‘qitish tajribasi** o‘tkazilgan. Ushbu tavsifdagi server, davomiylik va o‘qitish manbalari loyiha egasining ma’lumotiga tayangan.
+Loyiha jamoasi taqdim etgan ma’lumotga köra, TATU serverida Lex.uz va boşqa huquqiy saytlardan tayyorlangan ma’lumotlar asosida **14 soatlik model öqitiş tajribasi** ötkazilgan. Uşbu tavsifdagi server, davomiylik va öqitiş manbalari loyiha egasining ma’lumotiga tayangan.
 
-Repozitoriydagi amaldagi ishga tushirish konfiguratsiyasi Ollama orqali `qwen3-vl:8b-instruct` modeliga ulanadi. TATU tajribasining usuli, server apparati va yakuniy checkpointi haqidagi texnik ma’lumotlar loyiha jamoasi tomonidan taqdim etiladi.
+Repozitoriydagi amaldagi işga tuşiriş konfiguratsiyasi Ollama orqali `qwen3-vl:8b-instruct` modeliga ulanadi. TATU tajribasining usuli, server apparati va yakuniy çeckpointi haqidagi texnik ma’lumotlar loyiha jamoasi tomonidan taqdim etiladi.
 
-`RULES` rejimi tashqi model chaqirig‘isiz qoidaviy yordam beradi. `OPENAI_COMPATIBLE`, `AI_BASE_URL`, `AI_MODEL` va `AI_API_KEY` boshqa mos servisni ulashga xizmat qiladi. Masofadagi servis HTTPS va tegishli taraflarning tashqi ishlov roziligini talab qiladi. Har bir uzatish oldidan joriy ruxsat tekshiriladi. Rozilik nizo yakunlangach ham qaytarib olinadi.
+`RULES` rejimi taşqi model çaqiriğisiz qoidaviy yordam beradi. `OPENAI_COMPATIBLE`, `AI_BASE_URL`, `AI_MODEL` va `AI_API_KEY` boşqa mos servisni ulaşga xizmat qiladi. Masofadagi servis HTTPS va tegişli taraflarning taşqi işlov roziligini talab qiladi. Har bir uzatiş oldidan joriy ruxsat tekşiriladi. Rozilik nizo yakunlangaç ham qaytarib olinadi.
 
-Takliflarning jadvali va arifmetikasi server qoidalarida tuziladi. Mahalliy model faktlar, kamchiliklar va qarama-qarshiliklar tahlilini beradi. Sintetik sinovlar o‘zbek huquqiy aniqligi bo‘yicha keng benchmark o‘rnini bosmaydi. Huquqiy baho va hujjatni yakunlash mediator ko‘rigidan o‘tadi.
+Takliflarning jadvali va arifmetikasi server qoidalarida tuziladi. Mahalliy model faktlar, kamçiliklar va qarama-qarşiliklar tahlilini beradi. Sintetik sinovlar özbek huquqiy aniqligi böyiça keng bençmark örnini bosmaydi. Huquqiy baho va hujjatni yakunlaş mediator körigidan ötadi.
 
-PDF matni dastlabki 15 sahifadan olinadi. Skan OCR dastlabki ikki sahifani ishlaydi. DOCX xom matni va TXT ham qo‘llanadi. Ajratilgan ma’lumot tekshirilmagan deb belgilanadi.
+PDF matni dastlabki 15 sahifadan olinadi. Skan OCR dastlabki ikki sahifani işlaydi. DOCX xom matni va TXT ham qöllanadi. Ajratilgan ma’lumot tekşirilmagan deb belgilanadi.
 
 ## Arxitektura va ma’lumotlar
 
-![Kelishuv tizim arxitekturasi](docs/media/architecture.png)
+![Kelişuv tizim arxitekturasi](docs/media/architecture.png)
 
-[Arxitekturaning lokal ochiladigan varianti](docs/media/architecture.html)
+[Arxitekturaning lokal oçiladigan varianti](docs/media/architecture.html)
 
-### FastAPI va Qdrant bilan kengaytirish varianti
+### FastAPI va Qdrant bilan kengaytiriş varianti
 
 ![Loyiha egasi taqdim etgan FastAPI va Qdrant arxitektura sxemasi](docs/media/architecture-fastapi-reference.png)
 
-Sxema ixtiyoriy FastAPI/Qdrant yo‘lini tasvirlaydi. Joriy MVPning asosiy API va saqlash jarayoni Next.js serverida, model so‘rovlari Ollama orqali ishlaydi. PostgreSQL, FastAPI/Qdrant va OCR qatlamlari tegishli konfiguratsiya hamda servislar bilan ulanadi.
+Sxema ixtiyoriy FastAPI/Qdrant yölini tasvirlaydi. Joriy MVPning asosiy API va saqlaş jarayoni Next.js serverida, model sörovlari Ollama orqali işlaydi. PostgreSQL, FastAPI/Qdrant va OCR qatlamlari tegişli konfiguratsiya hamda servislar bilan ulanadi.
 
-Next.js 15.5.29, React 18.3, TypeScript, Tailwind, Radix, Zustand, NextAuth va Prisma mavjud asos sifatida kengaytirildi. Asosiy API `src/app/api/[...path]/route.ts`, yangi oqim `src/lib/kelishuv-api.ts` ichida joylashgan. AI, dalil ekstraksiyasi, PDF/DOCX va ijro alohida modullardir.
+Next.js 15.5.29, React 18.3, TypeScript, Tailwind, Radix, Zustand, NextAuth va Prisma mavjud asos sifatida kengaytirildi. Asosiy API `src/app/api/[...path]/route.ts`, yangi oqim `src/lib/kelishuv-api.ts` içida joylaşgan. AI, dalil ekstraksiyasi, PDF/DOCX va ijro alohida modullardir.
 
-Yozuvlar `.data/medimatch.enc`, hujjatlar `.data/documents/` ichida AES-256-GCM bilan shifrlanadi. Kalit `.data/encryption.key` yoki `DATA_ENCRYPTION_KEY` orqali olinadi. Zaxirada kalit va ma’lumot birga saqlanishi kerak. Parollar noyob salt bilan scrypt orqali xeshlanadi. `.data/` va mahalliy muhit fayllari Gitdan chiqarilgan.
+Yozuvlar `.data/medimatch.enc`, hujjatlar `.data/documents/` içida AES-256-GCM bilan şifrlanadi. Kalit `.data/encryption.key` yoki `DATA_ENCRYPTION_KEY` orqali olinadi. Zaxirada kalit va ma’lumot birga saqlanişi kerak. Parollar noyob salt bilan scrypt orqali xeşlanadi. `.data/` va mahalliy muhit fayllari Gitdan çiqarilgan.
 
-Mahalliy fayl ombori bitta ilova jarayoniga mo‘ljallangan. `DATABASE_URL` sozlanganda shifrlangan snapshot PostgreSQLda saqlanadi. Mutatsiyalar tranzaksiya va advisory lock bilan ketma-ket bajariladi.
+Mahalliy fayl ombori bitta ilova jarayoniga möljallangan. `DATABASE_URL` sozlanganda şifrlangan snapşot PostgreSQLda saqlanadi. Mutatsiyalar tranzaksiya va advisory lock bilan ketma-ket bajariladi.
 
 ```powershell
 npx prisma db push
 ```
 
-`LOCAL_DEMO=false` yangi ma’lumotlar bazasida shaxsiy ro‘yxatdan o‘tishni ochadi. Boshlang‘ich administrator uchun birinchi ishga tushirishdan oldin `INITIAL_ADMIN_EMAIL` va kamida 12 belgili `INITIAL_ADMIN_PASSWORD` beriladi. Boshlang‘ich sozlashdan so‘ng ushbu bootstrap o‘zgaruvchilari olib tashlanadi.
+`LOCAL_DEMO=false` yangi ma’lumotlar bazasida şaxsiy röyxatdan ötişni oçadi. Boşlanğiç administrator uçun birinçi işga tuşirişdan oldin `INITIAL_ADMIN_EMAIL` va kamida 12 belgili `INITIAL_ADMIN_PASSWORD` beriladi. Boşlanğiç sozlaşdan söng uşbu bootstrap özgaruvçilari olib taşlanadi.
 
 ## Lex.uz va ixtiyoriy xizmatlar
 
-Mediator ish maydonidagi yo‘naltirish katalogida 11 rasmiy hujjatdan 33 tanlangan modda, aniq havola, tahrir sanasi va xesh bor. Umumiy AI yordamchi 25 hujjatdagi 7 368 moddali korpus, lokal BGE-M3 va Lex.uz jonli qidiruvidan foydalanadi. Korpus `npm run assistant:sync` orqali yangilanadi, keyin ilova qayta yig‘iladi.
+Mediator iş maydonidagi yönaltiriş katalogida 11 rasmiy hujjatdan 33 tanlangan modda, aniq havola, tahrir sanasi va xeş bor. Umumiy AI yordamçi 25 hujjatdagi 7 368 moddali korpus, lokal BGE-M3 va Lex.uz jonli qidiruvidan foydalanadi. Korpus `npm run assistant:sync` orqali yangilanadi, keyin ilova qayta yiğiladi.
 
 ```powershell
 python scripts/index_laws.py --as-of 2026-11-20
 ```
 
-Ixtiyoriy FastAPI/Qdrant RAG xizmati avvalgi huquqiy chat uchun saqlangan.
+Ixtiyoriy FastAPI/Qdrant RAG xizmati avvalgi huquqiy çat uçun saqlangan.
 
 ```powershell
 python -m venv .venv
@@ -138,27 +140,27 @@ python -m venv .venv
 .venv\Scripts\python -m uvicorn ai_service.main:app --host 127.0.0.1 --port 8000
 ```
 
-`FASTAPI_URL`, `AI_SERVICE_KEY`, `QDRANT_URL` va tegishli embedding kaliti sozlanadi. `--cached --embed` katalogni Qdrantga indekslaydi. Chunk, manba xeshi va atomik indeks almashtirish [Lex.uz pipeline](docs/LEX_UZ_PIPELINE.md) hujjatida bayon qilingan.
+`FASTAPI_URL`, `AI_SERVICE_KEY`, `QDRANT_URL` va tegişli embedding kaliti sozlanadi. `--cached --embed` katalogni Qdrantga indekslaydi. Çunk, manba xeşi va atomik indeks almaştiriş [Lex.uz pipeline](docs/LEX_UZ_PIPELINE.md) hujjatida bayon qilingan.
 
-`REDIS_URL` umumiy rate limit uchun, MinIO/S3 o‘zgaruvchilari shifrlangan obyekt ombori uchun, SMTP o‘zgaruvchilari email outbox uchun ishlatiladi. To‘liq ro‘yxat `.env.example` ichida. Mahalliy bildirishnomalar va 60 soniyali ijro eslatmalari ilova ichida ishlaydi. Bir kunlik bir xil eslatma qayta yaratilmaydi.
+`REDIS_URL` umumiy rate limit uçun, MinIO/S3 özgaruvçilari şifrlangan obyekt ombori uçun, SMTP özgaruvçilari email outbox uçun işlatiladi. Töliq röyxat `.env.example` içida. Mahalliy bildirişnomalar va 60 soniyali ijro eslatmalari ilova içida işlaydi. Bir kunlik bir xil eslatma qayta yaratilmaydi.
 
-Docker Compose Next.js, FastAPI, PostgreSQL, Qdrant, Redis, MinIO va Nginx variantini beradi. `POSTGRES_PASSWORD` va tegishli kalitlarni berib, `docker compose up --build` bilan ishga tushiriladi. 2345-portni oldingi serverdan bo‘shatish kerak. Docker varianti ushbu tekshiruvda ishga tushirilmadi.
+Docker Compose Next.js, FastAPI, PostgreSQL, Qdrant, Redis, MinIO va Nginx variantini beradi. `POSTGRES_PASSWORD` va tegişli kalitlarni berib, `docker compose up --build` bilan işga tuşiriladi. 2345-portni oldingi serverdan böşatiş kerak. Docker varianti uşbu tekşiruvda işga tuşirilmadi.
 
 ## Integratsiya va huquqiy holat
 
-Qo‘lda chizilgan imzo vizual yozuv, hisob autentifikatsiyasi, rozilik, vaqt va audit bilan saqlanadi. ERI va OneID ulanishlari sozlanmagan. Mediatorning rasmiy reyestri administrator tomonidan qo‘lda tekshiriladi. Namuna profillarida `DEMO DATA` ko‘rinadi.
+Qölda çizilgan imzo vizual yozuv, hisob autentifikatsiyasi, rozilik, vaqt va audit bilan saqlanadi. ERI va OneID ulanişlari sozlanmagan. Mediatorning rasmiy reyestri administrator tomonidan qölda tekşiriladi. Namuna profillarida `DEMO DATA` körinadi.
 
-Hujjatlar uchun boshlang‘ich tariflar talabnoma uchun 19 000, mediatsiya arizasi uchun 29 000 va da’vo loyihasi uchun 49 000 so‘m qilib belgilangan. Mediator xizmati kelishilgan hisob asosida ikki tarafga teng taqsimlanadi. Platforma ulushi 15 foiz. Summalar va to‘lov huquqlari serverda tekshiriladi.
+Hujjatlar uçun boşlanğiç tariflar talabnoma uçun 19 000, mediatsiya arizasi uçun 29 000 va da’vo loyihasi uçun 49 000 söm qilib belgilangan. Mediator xizmati kelişilgan hisob asosida ikki tarafga teng taqsimlanadi. Platforma uluşi 15 foiz. Summalar va tölov huquqlari serverda tekşiriladi.
 
-Eskiz SMS, normallashtirilgan Face ID bridge, Payme Merchant API va Zoom Server-to-Server OAuth adapterlari mavjud. Ularning biznes hisoblari va kalitlari sozlanishini kutmoqda. Face ID provayderining SDK va autentifikatsiyasi bridge bilan moslashtiriladi. Mediatorga bank payout qilish uchun biznes hisob-kitob sozlamalari kerak. Mavjud sessiya oqimida Jitsi havolasi ham qo‘llanadi. Ulanish shartnomalari [kengaytma rejasida](docs/KELISHUV_EXPANSION_PLAN.md) berilgan.
+Eskiz SMS, normallaştirilgan Face ID bridge, Payme Merçant API va Zoom Server-to-Server OAuth adapterlari mavjud. Ularning biznes hisoblari va kalitlari sozlanişini kutmoqda. Face ID provayderining SDK va autentifikatsiyasi bridge bilan moslaştiriladi. Mediatorga bank payout qiliş uçun biznes hisob-kitob sozlamalari kerak. Mavjud sessiya oqimida Jitsi havolasi ham qöllanadi. Ulaniş şartnomalari [kengaytma rejasida](docs/KELISHUV_EXPANSION_PLAN.md) berilgan.
 
 ![Hujjat studiyasi va tariflar](docs/media/documents.png)
 
-Saqlash muddati, eksport va o‘chirish so‘rovi Sozlamalardan administratorga yuboriladi. Huquqiy saqlash va o‘chirish siyosati tashkilotning hujjat turlari hamda majburiyatlari asosida belgilanadi. Har bir yangi yakuniy hujjat nusxasi yangi ijro rejasini yaratadi. Oldingi nusxa hisobotlari alohida tarixda ko‘rinadi va mediator yangi jadvalni shu tarix bilan solishtiradi.
+Saqlaş muddati, eksport va öçiriş sörovi Sozlamalardan administratorga yuboriladi. Huquqiy saqlaş va öçiriş siyosati taşkilotning hujjat turlari hamda majburiyatlari asosida belgilanadi. Har bir yangi yakuniy hujjat nusxasi yangi ijro rejasini yaratadi. Oldingi nusxa hisobotlari alohida tarixda körinadi va mediator yangi jadvalni şu tarix bilan soliştiradi.
 
-Ovozli kiritish, keng huquqiy model baholashi, murakkab OCR va enterprise integratsiyalar keyingi fazalarga kiritilgan.
+Ovozli kiritiş, keng huquqiy model baholaşi, murakkab OCR va enterprise integratsiyalar keyingi fazalarga kiritilgan.
 
-## Tekshiruv
+## Tekşiruv
 
 ```powershell
 npm run lint
@@ -168,35 +170,35 @@ npm run build
 npm audit
 ```
 
-Saqlangan 64 ta regressiya testi maxfiylik, AI dispatch ruxsati, audit, hujjat chegaralari, to‘lov qayta urinishlari, shaxsni tekshirish callbacklari, SMS yuborish, Zoom tiklash, takliflar, RAG manbalari, raqamli da’volar, bepul limit va nizoni yopishni qamraydi. Ngrok orqali ikki tarafli taklif va yopish jarayoni, haqiqiy lokal RAG javobi hamda 10 ta so‘rov limiti tekshirildi. Uchta yangi avtomatik WCAG auditida xato qaytmadi. `npm run test:design` to‘qqizta ekstraktor regressiyasini tekshiradi. API va brauzer natijalari [VERIFICATION.md](docs/VERIFICATION.md) hujjatida qayd etilgan.
+Saqlangan 66 ta regressiya testi maxfiylik, AI dispatç ruxsati, audit, hujjat çegaralari, tölov qayta urinişlari, şaxsni tekşiriş callbacklari, SMS yuboriş, Zoom tiklaş, takliflar, RAG manbalari, raqamli da’volar, bepul limit, nizoni yopiş va yangi harflar bilan qidiruvni qamraydi. Ngrok orqali ikki tarafli taklif va yopiş jarayoni, haqiqiy lokal RAG javobi hamda 10 ta sörov limiti tekşirildi. Uçta yangi avtomatik WCAG auditida xato qaytmadi. `npm run test:design` töqqizta ekstraktor regressiyasini tekşiradi. API va brauzer natijalari [VERIFICATION.md](docs/VERIFICATION.md) hujjatida qayd etilgan.
 
 ## Tadqiqot va reja
 
-- [Ochiq kod tanlovlari](OPEN_SOURCE_RESEARCH.md)
-- [Model taqqoslashi](docs/MODEL_COMPARISON.md)
-- [Huquqiy imzolash tadqiqoti](docs/SIGNING_LEGAL.md)
+- [Oçiq kod tanlovlari](OPEN_SOURCE_RESEARCH.md)
+- [Model taqqoslaşi](docs/MODEL_COMPARISON.md)
+- [Huquqiy imzolaş tadqiqoti](docs/SIGNING_LEGAL.md)
 - [Imzo arxitekturasi](docs/SIGNATURE_IMPLEMENTATION.md)
-- [Amalga oshirish rejasi](docs/KELISHUV_PLAN.md)
-- [Sud va mediatsiyaga yo‘naltirish](docs/LEGAL_ROUTING.md)
-- [Interfeys yangilanishi va tekshiruvlar](docs/REDESIGN_PLAN.md)
+- [Amalga oşiriş rejasi](docs/KELISHUV_PLAN.md)
+- [Sud va mediatsiyaga yönaltiriş](docs/LEGAL_ROUTING.md)
+- [Interfeys yangilanişi va tekşiruvlar](docs/REDESIGN_PLAN.md)
 
 ## Yangilangan interfeys
 
-Ommaviy taqdimot `/welcome`, shaxsiy kabinet `/`, ikki qadamli ro‘yxatdan o‘tish `/auth/register`, besh qadamli murojaat `/dashboard/new` manzillarida ishlaydi. Mediator `/mediator`, administrator `/admin` bo‘limidan foydalanadi.
+Ommaviy taqdimot `/welcome`, şaxsiy kabinet `/`, ikki qadamli röyxatdan ötiş `/auth/register`, beş qadamli murojaat `/dashboard/new` manzillarida işlaydi. Mediator `/mediator`, administrator `/admin` bölimidan foydalanadi.
 
-Qoralama shu brauzer sessiyasida har bir hisob uchun alohida saqlanadi. Tiklashda fayllar qayta tanlanadi. Murojaat yuborilgach aloqa uzilsa, qayta urinish saqlangan ishni tiklaydi. Taklif yaratishdagi xato saqlangan ishga bog‘langan qayta urinish orqali davom ettiriladi.
+Qoralama şu brauzer sessiyasida har bir hisob uçun alohida saqlanadi. Tiklaşda fayllar qayta tanlanadi. Murojaat yuborilgaç aloqa uzilsa, qayta uriniş saqlangan işni tiklaydi. Taklif yaratişdagi xato saqlangan işga boğlangan qayta uriniş orqali davom ettiriladi.
 
-## Dizayn manbasini yig‘ish
+## Dizayn manbasini yiğiş
 
-Getsherik’ning ochiq HTML manbasi lokal Chromium’da render qilinib, ranglari, shriftlari, DOM, computed CSS, scroll va hover holatlari o‘lchandi. Kelishuv’da shu tipografika va iliq yuzalar yashil brend bilan moslashtirildi. Shrift fayllari lokal saqlanadi.
+Getsherik’ning oçiq HTML manbasi lokal Çromium’da render qilinib, ranglari, şriftlari, DOM, computed CSS, scroll va hover holatlari ölçandi. Kelişuv’da şu tipografika va iliq yuzalar yaşil brend bilan moslaştirildi. Şrift fayllari lokal saqlanadi.
 
 ```powershell
 npm run design:reference -- https://getsherik.uz/ --public-proxy
 npm run design:reference -- http://127.0.0.1:2345/welcome
 ```
 
-Natijalar `.data/design-reference/` ichida yangi papkaga yoziladi. `DESIGN.md`, `design.json`, `tokens.css`, `preview.html`, resurslar va to‘rtta ekran o‘lchamidagi screenshotlar yaratiladi. Birinchi ishga tushirish Git orqali extractor manbasini va alohida Playwright runtime’ini tayyorlaydi. Node.js 24.19 bilan tekshirildi.
+Natijalar `.data/design-reference/` içida yangi papkaga yoziladi. `DESIGN.md`, `design.json`, `tokens.css`, `preview.html`, resurslar va törtta ekran ölçamidagi screenşotlar yaratiladi. Birinçi işga tuşiriş Git orqali extractor manbasini va alohida Playwright runtime’ini tayyorlaydi. Node.js 24.19 bilan tekşirildi.
 
-`--public-proxy` ochiq URL uchun IntelliScrape hosted xizmatini yoqadi. Getsherik’dagi to‘g‘ridan-to‘g‘ri HTTPS sertifikat xatosi sabab bu parametr ishlatildi. Kabinet tahlili ommaviy frontend manbasiga asoslangan. Batafsil o‘lchovlar, yuklangan vositalar va qayta ishga tushirish parametrlari [dizayn hujjatida](docs/DESIGN.md) berilgan.
+`--public-proxy` oçiq URL uçun IntelliScrape hosted xizmatini yoqadi. Getsherik’dagi töğridan-töğri HTTPS sertifikat xatosi sabab bu parametr işlatildi. Kabinet tahlili ommaviy frontend manbasiga asoslangan. Batafsil ölçovlar, yuklangan vositalar va qayta işga tuşiriş parametrlari [dizayn hujjatida](docs/DESIGN.md) berilgan.
 
-Ekstraktorning HTTP xatolari, kech yuklangan fayllar, takroriy URL, nisbiy CSS havolalari, xato navigatsiya, parallel yozish va dastlabki o‘rnatish holatlari `npm run test:design` orqali tekshiriladi.
+Ekstraktorning HTTP xatolari, keç yuklangan fayllar, takroriy URL, nisbiy CSS havolalari, xato navigatsiya, parallel yoziş va dastlabki örnatiş holatlari `npm run test:design` orqali tekşiriladi.

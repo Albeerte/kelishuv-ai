@@ -111,7 +111,7 @@ export function PublicFooter() {
         <p>
           <T>Kelishuvga birinchi qadamni birga qo‘yamiz.</T>
         </p>
-        <small>© {new Date().getFullYear()} KELISHUV AI</small>
+        <small>© {new Date().getFullYear()} <T>KELISHUV AI</T></small>
       </div>
       <nav aria-label={t("Ma’lumotlar")}>
         {[

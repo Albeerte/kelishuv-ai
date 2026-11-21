@@ -1,6 +1,7 @@
 "use client";
 import { T as LocalizedText, translate as localizeText } from "@/lib/i18n";
 import Link from "next/link";
+import { normalizeUzbekSearch } from "@/lib/uzbek-alphabet";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -127,9 +128,9 @@ export function LawsPage() {
                 </span>
                 <small>{source.lawNumber}</small>
               </div>
-              <h2>{source.title}</h2>
-              <span className="law-article">{source.article}</span>
-              <p>{source.summary}</p>
+              <h2><LocalizedText>{source.title}</LocalizedText></h2>
+              <span className="law-article"><LocalizedText>{source.article}</LocalizedText></span>
+              <p><LocalizedText>{source.summary}</LocalizedText></p>
               {source.content && (
                 <details className="cached-article">
                   <summary>
@@ -384,7 +385,7 @@ export function CalculatorPage() {
               <div key={item.className}>
                 <span>
                   <i className={item.className} />
-                  {item.label}
+                  <LocalizedText>{item.label}</LocalizedText>
                 </span>
                 <strong>
                   {money(item.value)} <LocalizedText>so‘m</LocalizedText>
@@ -502,7 +503,7 @@ export function ChatPage({ caseId }: { caseId?: string }) {
       >
         <span className="assistant-mode">
           <Sparkles size={15} />
-          {integrations.ai ? "AI xizmati sozlangan" : "Mahalliy ma’lumotnoma"}
+          <LocalizedText>{integrations.ai ? "AI xizmati sozlangan" : "Mahalliy ma’lumotnoma"}</LocalizedText>
         </span>
       </PageHeading>
       <section className="panel chat-panel">
@@ -552,7 +553,7 @@ export function ChatPage({ caseId }: { caseId?: string }) {
                             rel="noreferrer"
                           >
                             <BookOpen size={14} />
-                            <span>{source.title}</span>
+                            <span><LocalizedText>{source.title}</LocalizedText></span>
                             <ChevronRight size={13} />
                           </a>
                         ))}
@@ -671,9 +672,8 @@ export function DocumentsPage() {
         record.documents.map((document) => ({ ...document, record })),
       )
       .filter((document) =>
-        `${document.name} ${document.record.number}`
-          .toLowerCase()
-          .includes(query.toLowerCase()),
+        normalizeUzbekSearch(`${document.name} ${document.record.number}`)
+          .includes(normalizeUzbekSearch(query)),
       ) || [];
   const selectedCase = data?.cases.find((record) => record.id === selected);
   return (
@@ -963,7 +963,7 @@ export function SettingsPage() {
               <LocalizedText>Shaxsiy ma’lumotlar</LocalizedText>
             </h2>
             <span className="category-pill">
-              {profile.demo ? "Namuna hisobi" : "Shaxsiy hisob"}
+              <LocalizedText>{profile.demo ? "Namuna hisobi" : "Shaxsiy hisob"}</LocalizedText>
             </span>
           </div>
           <div className="form-stack">
@@ -1028,7 +1028,7 @@ export function SettingsPage() {
               />
             </label>
             <Button type="submit" disabled={busy}>
-              {busy ? "Saqlanmoqda..." : "O‘zgarishlarni saqlash"}
+              <LocalizedText>{busy ? "Saqlanmoqda..." : "O‘zgarishlarni saqlash"}</LocalizedText>
             </Button>
           </div>
         </form>
@@ -1042,7 +1042,7 @@ export function SettingsPage() {
             </span>
             <div>
               <strong>
-                {profile.demo ? "Mahalliy demo" : "Shaxsiy ish muhiti"}
+                <LocalizedText>{profile.demo ? "Mahalliy demo" : "Shaxsiy ish muhiti"}</LocalizedText>
               </strong>
               <small>
                 <LocalizedText>Vaqt mintaqasi — Toshkent (UTC+5)</LocalizedText>
@@ -1110,7 +1110,7 @@ export function SettingsPage() {
                 onClick={() => switchRole(item.role)}
               >
                 <item.icon size={17} />
-                {item.label}
+                <LocalizedText>{item.label}</LocalizedText>
               </Button>
             ))}
           </div>

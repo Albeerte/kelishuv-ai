@@ -28,6 +28,7 @@ import { api, money } from "@/lib/utils";
 import { useData } from "@/lib/use-data";
 import { useUI } from "@/lib/client-store";
 import { hasMutualAppointment, normalizeCity } from "@/lib/mediation";
+import { normalizeUzbekSearch } from "@/lib/uzbek-alphabet";
 import { fullDate, timeOf } from "@/lib/utils";
 import { useProfile } from "../application";
 
@@ -189,7 +190,7 @@ export function MediatorCard({
         </div>
         <div className="mediator-tags profile-tags">
           {mediator.specializations.map((type) => (
-            <span key={type}>{TYPE_LABELS[type]}</span>
+            <span key={type}><LocalizedText>{TYPE_LABELS[type]}</LocalizedText></span>
           ))}
         </div>
         <div className="booking-price">
@@ -421,7 +422,7 @@ export function BookingDialog({
             </p>
           )}
           <Button type="submit" disabled={busy || !selected}>
-            {busy ? "Saqlanmoqda..." : "Sessiyani belgilash"}
+            <LocalizedText>{busy ? "Saqlanmoqda..." : "Sessiyani belgilash"}</LocalizedText>
             <CalendarDays size={16} />
           </Button>
         </form>
@@ -461,7 +462,7 @@ export function Mediators() {
     data?.mediators
       .filter(
         (mediator) =>
-          mediator.name.toLowerCase().includes(search.toLowerCase()) &&
+          normalizeUzbekSearch(mediator.name).includes(normalizeUzbekSearch(search)) &&
           (!region || mediator.region === region) &&
           (!city ||
             normalizeCity(mediator.city).includes(normalizeCity(city))) &&

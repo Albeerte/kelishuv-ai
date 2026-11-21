@@ -1,32 +1,32 @@
-# Huquqiy yordamchi va ma’lumot manbalari
+# Huquqiy yordamçi va ma’lumot manbalari
 
-Yordamchi Orama BM25 qidiruvi, lokal BGE-M3 semantik qayta saralash va Ollama orqali Qwen javob yaratishidan foydalanadi. Javobga faqat qidiruvdan qaytgan manba identifikatorlari qabul qilinadi. Model ishlamasa, topilgan matnlar va umumiy yo‘naltirish ko‘rsatiladi. [Orama](https://github.com/oramasearch/orama), [BGE-M3](https://ollama.com/library/bge-m3), [Ollama](https://github.com/ollama/ollama)
+Yordamçi Orama BM25 qidiruvi, lokal BGE-M3 semantik qayta saralaş va Ollama orqali Qwen javob yaratişidan foydalanadi. Javobga faqat qidiruvdan qaytgan manba identifikatorlari qabul qilinadi. Model işlamasa, topilgan matnlar va umumiy yönaltiriş körsatiladi. [Orama](https://github.com/oramasearch/orama), [BGE-M3](https://ollama.com/library/bge-m3), [Ollama](https://github.com/ollama/ollama)
 
-Model izohidagi raqamlar va foiz qiymatlari tegishli manbada uchrashi tekshiriladi. Mos kelmagan izoh o‘rniga manbadan parcha beriladi. Ushbu tekshiruv bilan birga foydalanuvchiga qonunning asl matniga havola taqdim etiladi.
+Model izohidagi raqamlar va foiz qiymatlari tegişli manbada uçraşi tekşiriladi. Mos kelmagan izoh örniga manbadan parça beriladi. Uşbu tekşiruv bilan birga foydalanuvçiga qonunning asl matniga havola taqdim etiladi.
 
-## Qamrov va yangilanish
+## Qamrov va yangilaniş
 
-Lokal korpus 25 ta huquqiy hujjatdagi 7 368 moddani qamrab oladi. Dastlabki nusxa 2026-yil iyul holatiga tegishli. Manba `javohirmat/uzbek-legal-corpus`, aniq revision `54902864037d1e84be557cf6ba3ef5ea132d71ac`. Ma’lumot CC0-1.0 litsenziyasida tarqatilgan. Har bir faylning SHA-256 qiymati korpus metama’lumotlarida saqlanadi. [Korpus va litsenziya](https://github.com/javohirmat/uzbek-legal-corpus)
+Lokal korpus 25 ta huquqiy hujjatdagi 7 368 moddani qamrab oladi. Dastlabki nusxa 2026-yil iyul holatiga tegişli. Manba `javohirmat/uzbek-legal-corpus`, aniq revision `54902864037d1e84be557cf6ba3ef5ea132d71ac`. Ma’lumot CC0-1.0 litsenziyasida tarqatilgan. Har bir faylning SHA-256 qiymati korpus metama’lumotlarida saqlanadi. [Korpus va litsenziya](https://github.com/javohirmat/uzbek-legal-corpus)
 
-So‘rov vaqtida tanlangan moddalar Lex.uz dan olinadi. Qo‘shimcha hujjatlar Lex.uz qidiruvi orqali topiladi. Joriy sahifadan olingan matnlar olti soat keshlanadi. Kuchini yo‘qotgan hujjatlar joriy dalil sifatida chiqarilmaydi. Jonli so‘rov muvaffaqiyatsiz bo‘lsa, karta saqlangan nusxa sanasini ko‘rsatadi. Har bir javob manba havolasi va tekshirilgan yoki saqlangan sana bilan beriladi. [Lex.uz](https://lex.uz/)
+Sörov vaqtida tanlangan moddalar Lex.uz dan olinadi. Qöşimça hujjatlar Lex.uz qidiruvi orqali topiladi. Joriy sahifadan olingan matnlar olti soat keşlanadi. Kuçini yöqotgan hujjatlar joriy dalil sifatida çiqarilmaydi. Jonli sörov muvaffaqiyatsiz bölsa, karta saqlangan nusxa sanasini körsatadi. Har bir javob manba havolasi va tekşirilgan yoki saqlangan sana bilan beriladi. [Lex.uz](https://lex.uz/)
 
-Oliy sudning fuqarolik ishlari bo‘yicha Plenum ro‘yxati tegishli qarorlarni topishga xizmat qiladi. Qaror matni Lex.uz dan tekshiriladi. `sud.uz` ochiq maqolalari qo‘shimcha amaliy material sifatida beriladi. Kartalar qonun, Plenum qarori va sud amaliyotiga oid maqolani alohida belgilaydi. [Plenum ro‘yxati](https://sud.uz/la/plenum-la/documents-civil-la/), [Oliy sud ochiq materiallari](https://sud.uz/)
+Oliy sudning fuqarolik işlari böyiça Plenum röyxati tegişli qarorlarni topişga xizmat qiladi. Qaror matni Lex.uz dan tekşiriladi. `sud.uz` oçiq maqolalari qöşimça amaliy material sifatida beriladi. Kartalar qonun, Plenum qarori va sud amaliyotiga oid maqolani alohida belgilaydi. [Plenum röyxati](https://sud.uz/la/plenum-la/documents-civil-la/), [Oliy sud oçiq materiallari](https://sud.uz/)
 
-`public.sud.uz` dagi individual sud qarorlari bazasiga ulanish ushbu muhitda tekshirilmadi. Sud amaliyoti qamrovi yuqoridagi ochiq materiallardan iborat. Qidiruvning 25 hujjatli lokal qamrovi Lex.uz jonli qidiruvi bilan kengayadi. Manbalarga kirish va savolning aniqligi javob qamroviga ta’sir qiladi.
+`public.sud.uz` dagi individual sud qarorlari bazasiga ulaniş uşbu muhitda tekşirilmadi. Sud amaliyoti qamrovi yuqoridagi oçiq materiallardan iborat. Qidiruvning 25 hujjatli lokal qamrovi Lex.uz jonli qidiruvi bilan kengayadi. Manbalarga kiriş va savolning aniqligi javob qamroviga ta’sir qiladi.
 
-## Ochiq kod va litsenziyalar
+## Oçiq kod va litsenziyalar
 
-| Qism | Ishlatilishi | Litsenziya |
+| Qism | Işlatilişi | Litsenziya |
 | --- | --- | --- |
-| `@orama/orama` 3.1.18 | BM25 indeks va qidiruv | Apache-2.0 |
-| `cheerio` 1.2.0 | Lex.uz va Oliy sud HTML matnini ajratish | MIT |
+| `@orama/orama` 3.1.18 | BM25 indeks va qidiruv | Apaçe-2.0 |
+| `cheerio` 1.2.0 | Lex.uz va Oliy sud HTML matnini ajratiş | MIT |
 | Uzbek legal corpus | Moddalar va hujjatlar katalogi | CC0-1.0 |
 | Ollama | Lokal model serveri | MIT |
-| BGE-M3 | Ko‘p tilli matn embeddinglari | MIT |
+| BGE-M3 | Köp tilli matn embeddinglari | MIT |
 
-Paket litsenziyalari o‘rnatilgan `node_modules` tarkibida mavjud. Korpus litsenziyasi `docs/licenses/uzbek-legal-corpus-CC0.txt` faylida saqlangan. [Cheerio](https://github.com/cheeriojs/cheerio), [BGE-M3 modeli](https://huggingface.co/BAAI/bge-m3)
+Paket litsenziyalari örnatilgan `node_modules` tarkibida mavjud. Korpus litsenziyasi `docs/licenses/uzbek-legal-corpus-CC0.txt` faylida saqlangan. [Çeerio](https://github.com/cheeriojs/cheerio), [BGE-M3 modeli](https://huggingface.co/BAAI/bge-m3)
 
-## Lokal ishga tushirish
+## Lokal işga tuşiriş
 
 ```powershell
 ollama pull qwen3-vl:8b-instruct
@@ -36,16 +36,16 @@ npm run build
 npm start
 ```
 
-`.env.local` ichida `AI_PROVIDER=OLLAMA`, `AI_MODEL=qwen3-vl:8b-instruct` va `AI_EMBEDDING_MODEL=bge-m3` sozlanadi. `AI_RAG_EMBEDDINGS=false` holatida BM25 qidiruvi ishlaydi. Korpusni yangilashdan keyin ilovani qayta yig‘ish kerak.
+`.env.local` içida `AI_PROVIDER=OLLAMA`, `AI_MODEL=qwen3-vl:8b-instruct` va `AI_EMBEDDING_MODEL=bge-m3` sozlanadi. `AI_RAG_EMBEDDINGS=false` holatida BM25 qidiruvi işlaydi. Korpusni yangilaşdan keyin ilovani qayta yiğiş kerak.
 
 ## Bepul limit va maxfiylik
 
-Har bir hisob uchun jami 10 ta muvaffaqiyatli so‘rov ajratilgan. Hisobga kirmagan tashrifchi uchun limit imzolangan HttpOnly cookie orqali shu brauzerga bog‘lanadi. Limit avtomatik yangilanmaydi. Davom etayotgan so‘rov vaqtincha joy band qiladi. Texnik xato bilan tugagan so‘rov joyi qaytariladi. Bir xil `requestId` bilan takrorlash ikkinchi marta hisoblanmaydi.
+Har bir hisob uçun jami 10 ta muvaffaqiyatli sörov ajratilgan. Hisobga kirmagan taşrifçi uçun limit imzolangan HttpOnly cookie orqali şu brauzerga boğlanadi. Limit avtomatik yangilanmaydi. Davom etayotgan sörov vaqtinça joy band qiladi. Texnik xato bilan tugagan sörov joyi qaytariladi. Bir xil `requestId` bilan takrorlaş ikkinçi marta hisoblanmaydi.
 
-Yordamchi shaxsiy ishlar yoki yuklangan hujjatlarni o‘qimaydi. Savol va ikki oldingi savol kontekst sifatida ishlatiladi. Lex.uz va Oliy sudga yuboriladigan qidiruvlar umumiy mavzu so‘zlaridan tuziladi. Tashqi generativ modelga savol yuborish foydalanuvchining alohida roziligiga bog‘langan. Embedding so‘rovlari faqat lokal Ollama manziliga yuboriladi.
+Yordamçi şaxsiy işlar yoki yuklangan hujjatlarni öqimaydi. Savol va ikki oldingi savol kontekst sifatida işlatiladi. Lex.uz va Oliy sudga yuboriladigan qidiruvlar umumiy mavzu sözlaridan tuziladi. Taşqi generativ modelga savol yuboriş foydalanuvçining alohida roziligiga boğlangan. Embedding sörovlari faqat lokal Ollama manziliga yuboriladi.
 
-## Taklif va nizoni yakunlash
+## Taklif va nizoni yakunlaş
 
-Takliflar to‘liq HTTPS havolasi bilan yaratiladi va murojaatchi sahifani yangilaganda qayta yuklanadi. Qarshi taraf taklifdagi telefon yoki emailga mos hisob orqali qo‘shiladi. Telefonli taklifda shaxsiy token va mos hisob talab qilinadi. SMS tasdiqlash holati profilda o‘z holicha saqlanadi.
+Takliflar töliq HTTPS havolasi bilan yaratiladi va murojaatçi sahifani yangilaganda qayta yuklanadi. Qarşi taraf taklifdagi telefon yoki emailga mos hisob orqali qöşiladi. Telefonli taklifda şaxsiy token va mos hisob talab qilinadi. SMS tasdiqlaş holati profilda öz holiça saqlanadi.
 
-Taraf o‘z murojaatini qaytarib olib nizoni yopishi mumkin. Mustaqil kelishuv sababli yopishda qo‘shilgan ikkinchi tarafning tasdig‘i olinadi. Yopish tarixi saqlanadi va rejalashtirilgan ichki sessiyalar bekor qilinadi. Ish hujjatlari va oldingi to‘lov yozuvlari arxivda mavjud bo‘ladi.
+Taraf öz murojaatini qaytarib olib nizoni yopişi mumkin. Mustaqil kelişuv sababli yopişda qöşilgan ikkinçi tarafning tasdiği olinadi. Yopiş tarixi saqlanadi va rejalaştirilgan içki sessiyalar bekor qilinadi. Iş hujjatlari va oldingi tölov yozuvlari arxivda mavjud böladi.

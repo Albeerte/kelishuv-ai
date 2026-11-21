@@ -50,6 +50,7 @@ const mediation = loadSource("src/lib/mediation.ts");
 const workflow = loadSource("src/lib/ai-workflow.ts");
 const provider = loadSource("src/lib/ai-provider.ts");
 const documents = loadSource("src/lib/agreement-pdf.ts");
+const { localeText } = loadSource("src/lib/locale-text.ts");
 const extraction = loadSource("src/lib/evidence-extraction.ts");
 const negotiation = loadSource("src/lib/negotiation.ts");
 const payme = loadSource("src/lib/payme.ts");
@@ -57,6 +58,34 @@ const identityApi = loadSource("src/lib/identity-api.ts");
 const serviceApi = loadSource("src/lib/service-api.ts");
 const { NextRequest } = require("next/server");
 const { randomUUID, createHmac } = require("node:crypto");
+
+test("Uzbek interface uses the requested alphabet and preserves technical references", () => {
+  assert.equal(localeText("O‘zbekcha: G‘ gʻ O' oʼ Sh sh CH ch", "uz"), "Özbekça: Ğ ğ Ö ö Ş ş Ç ç");
+  assert.equal(localeText("KELISHUV AI — Yangi muammo boshlash", "uz"), "KELIŞUV AI — Yangi muammo boşlaş");
+  assert.equal(localeText("Ma’lumot va san’at", "uz"), "Ma’lumot va san’at");
+  assert.equal(localeText("SHA-256 https://lex.uz/docs/-3805227?search=shartnoma user@ish.uz `git push`", "uz"), "SHA-256 https://lex.uz/docs/-3805227?search=shartnoma user@ish.uz `git push`");
+  assert.equal(localeText("Özbekça", "uz"), "Özbekça");
+  assert.equal(localeText("O`zbek va g`oz", "uz"), "Özbek va ğoz");
+  assert.equal(localeText("CHECK-123 REF-Ö42 `REF-Ö42`", "uz"), "CHECK-123 REF-Ö42 `REF-Ö42`");
+  assert.equal(localeText("a".repeat(100000), "uz"), "a".repeat(100000));
+  assert.equal(localeText("ö-".repeat(50000) + "ö", "uz"), "ö-".repeat(50000) + "ö");
+  assert.equal(localeText("ish-beruvchi", "uz"), "iş-beruvçi");
+  assert.equal(localeText("o'zbek@ish.uz", "uz"), "o'zbek@ish.uz");
+  assert.equal(localeText("https://ish.uz/s\u0327 `s\u0327`", "uz"), "https://ish.uz/s\u0327 `s\u0327`");
+  assert.equal(localeText("KELIŞUV AI", "ru"), "KELISHUV AI");
+  assert.equal(localeText("Bosh sahifa", "ru"), "Главная страница");
+});
+
+test("new alphabet input matches existing cities and legal classifications", () => {
+  const retrieval = loadSource("src/lib/legal-retrieval.ts");
+  const legal = loadSource("src/lib/legal.ts");
+  assert.equal(mediation.normalizeCity("Toşkent şahri"), mediation.normalizeCity("Toshkent shahri"));
+  assert.equal(mediation.normalizeCity("Ğiştköprik"), mediation.normalizeCity("G‘ishtko‘prik"));
+  assert.equal(legal.classify("Iş haqim tölanmagan"), "MEHNAT");
+  assert.equal(legal.classify("Şartnoma böyiça tölov"), "SHARTNOMA");
+  assert.equal(legal.isCriminal("Öğrilik va tahdid"), true);
+  assert.equal(retrieval.normalizeLegalQuery("Iş haqini tölaş"), retrieval.normalizeLegalQuery("Ish haqini to‘lash"));
+});
 const users = [
   { id: "a", role: "CITIZEN", fullName: "First", isActive: true },
   { id: "b", role: "CITIZEN", fullName: "Second", isActive: true },
@@ -1506,8 +1535,8 @@ test("assistant synthesis accepts retrieved citations and falls back on invented
   };
   try {
     const answer = await assistant.answerAssistant(
-      "Soliq to‘lovchining huquqlari qanday?",
-      [],
+      "Soliq tölanmagan, REF-Ö42. Qaysi huquqlarim bor?",
+      ["CHECK-123 https://lex.uz/?q=Ö42"],
       false,
       "uz",
     );
@@ -1515,6 +1544,7 @@ test("assistant synthesis accepts retrieved citations and falls back on invented
     assert.match(answer.answer, /21-modda/);
     assert.equal(answer.sources[0].id, source.id);
     assert.equal(sent.evidence[0].text, source.content);
+    assert.equal(sent.question, "CHECK-123 https://lex.uz/?q=Ö42\nSoliq tölanmagan, REF-Ö42. Qaysi huquqlarim bor?");
     provider.runStructuredAI = async () => ({
       model: "unverified-number",
       data: {

@@ -1,25 +1,25 @@
 # Lex.uz tanlangan moddalar katalogi
 
-## Joriy ishlash tartibi
+## Joriy işlaş tartibi
 
-`python scripts/index_laws.py` rasmiy HTML sahifalarini oladi va tanlangan moddalarni `src/data/legal-articles.json`ga yozadi. Standart tekshirish sanasi 2026-11-20. Keyingi yangilashda `--as-of YYYY-MM-DD` beriladi. Har bir moddada rasmiy sarlavha, haqiqiy HTML identifikatorli havola, normativ matn, tahrir sanasi, olingan vaqt va SHA-256 xesh saqlanadi.
+`python scripts/index_laws.py` rasmiy HTML sahifalarini oladi va tanlangan moddalarni `src/data/legal-articles.json`ga yozadi. Standart tekşiriş sanasi 2026-11-20. Keyingi yangilaşda `--as-of YYYY-MM-DD` beriladi. Har bir moddada rasmiy sarlavha, haqiqiy HTML identifikatorli havola, normativ matn, tahrir sanasi, olingan vaqt va SHA-256 xeş saqlanadi.
 
-Production server yangi katalogni olishi uchun `npm run build` bajariladi va Next.js jarayoni qayta ishga tushiriladi. FastAPI katalogi xizmat ishga tushganida o‘qiladi, katalog yangilangach u ham qayta ishga tushiriladi. Qidiruvda katalog xeshiga mos keladigan vektorlar ishlatiladi.
+Production server yangi katalogni olişi uçun `npm run build` bajariladi va Next.js jarayoni qayta işga tuşiriladi. FastAPI katalogi xizmat işga tuşganida öqiladi, katalog yangilangaç u ham qayta işga tuşiriladi. Qidiruvda katalog xeşiga mos keladigan vektorlar işlatiladi.
 
-Parser `#divCont` ichidagi normativ elementlarni o‘qiydi. Navigatsiya, LexUZ sharhlari va o‘zgartirish manbalari chiqariladi. `29¹` kabi qo‘shimcha moddalarning identifikatori saqlanadi. Kutilgan modda yoki tahrir metama’lumoti topilmasa import to‘xtaydi. To‘liq natija vaqtinchalik fayl tayyorlangach atomar almashtiriladi. HTML tuzilishi o‘zgarsa parser tekshiriladi. [Mediatsiya qonuni](https://lex.uz/docs/-3805227)
+Parser `#divCont` içidagi normativ elementlarni öqiydi. Navigatsiya, LexUZ şarhlari va özgartiriş manbalari çiqariladi. `29¹` kabi qöşimça moddalarning identifikatori saqlanadi. Kutilgan modda yoki tahrir metama’lumoti topilmasa import töxtaydi. Töliq natija vaqtinçalik fayl tayyorlangaç atomar almaştiriladi. HTML tuzilişi özgarsa parser tekşiriladi. [Mediatsiya qonuni](https://lex.uz/docs/-3805227)
 
 ## Mahalliy qidiruv va AI
 
-Next.js katalogdagi normativ matnni kalit so‘z va nizo turi bo‘yicha qidiradi. Dastlabki yo‘naltirish qoidalari `src/lib/legal-routing.ts`da joylashgan. Hujjatlar fayl sifatida saqlanadi, ularning huquqiy bahosi mediator tomonidan beriladi.
+Next.js katalogdagi normativ matnni kalit söz va nizo turi böyiça qidiradi. Dastlabki yönaltiriş qoidalari `src/lib/legal-routing.ts`da joylaşgan. Hujjatlar fayl sifatida saqlanadi, ularning huquqiy bahosi mediator tomonidan beriladi.
 
-`python scripts/index_laws.py --cached --embed` uchun `OPENAI_API_KEY` va `QDRANT_URL` kerak. Matn 512 tokenli, 50 token ustma-ust tushadigan bo‘laklarga ajratiladi. Yangi Qdrant kolleksiyasi to‘liq yozilgach `uzbek_laws_active` aliasi atomar almashtiriladi. `QDRANT_COLLECTION` bilan boshqa alias nomi berilishi mumkin, indekslash va FastAPI sozlamasi bir xil bo‘lishi kerak. Oldingi kolleksiyalar qo‘lda boshqarish uchun saqlanadi. Bu embedding oqimi tashqi xizmatlar sozlangach tekshiriladi.
+`python scripts/index_laws.py --cached --embed` uçun `OPENAI_API_KEY` va `QDRANT_URL` kerak. Matn 512 tokenli, 50 token ustma-ust tuşadigan bölaklarga ajratiladi. Yangi Qdrant kolleksiyasi töliq yozilgaç `uzbek_laws_active` aliasi atomar almaştiriladi. `QDRANT_COLLECTION` bilan boşqa alias nomi berilişi mumkin, indekslaş va FastAPI sozlamasi bir xil bölişi kerak. Oldingi kolleksiyalar qölda boşqariş uçun saqlanadi. Bu embedding oqimi taşqi xizmatlar sozlangaç tekşiriladi.
 
-FastAPI `LAW_CATALOG` orqali shu katalogni oladi. Mahalliy ishga tushirishda standart yo‘l repodagi katalogdir.
+FastAPI `LAW_CATALOG` orqali şu katalogni oladi. Mahalliy işga tuşirişda standart yöl repodagi katalogdir.
 
-## Yangilanishni kuzatish
+## Yangilanişni kuzatiş
 
-Rasmiy RSS yangilangan hujjatlarni aniqlash uchun qo‘shimcha signal beradi. RSS barcha hujjatlarni qamrab olishi tasdiqlanmagan. Rejadagi kundalik yuklash bir xil tahrir metama’lumoti va normativ mazmun xeshini solishtiradi. Ushbu loyihada yangilash buyrug‘i qo‘lda ishga tushiriladi. [Rasmiy RSS](https://lex.uz/uz/rss)
+Rasmiy RSS yangilangan hujjatlarni aniqlaş uçun qöşimça signal beradi. RSS barça hujjatlarni qamrab olişi tasdiqlanmagan. Rejadagi kundalik yuklaş bir xil tahrir metama’lumoti va normativ mazmun xeşini soliştiradi. Uşbu loyihada yangilaş buyruği qölda işga tuşiriladi. [Rasmiy RSS](https://lex.uz/uz/rss)
 
-Ochiq hujjatlashtirilgan umumiy Lex.uz API tadqiqotda topilmadi. Rasmiy PDF va Word eksporti alohida hujjat darajasida mavjud. Keng ko‘lamli tijoriy ma’lumot oqimi uchun “Adolat” operatoridan API, eksport va foydalanish shartlari olinadi. [Tizim haqida](https://lex.uz/lexuz) · [Operator](https://lex.uz/uz/about) · [Axborot shartlari](https://lex.uz/uz/axborot)
+Oçiq hujjatlaştirilgan umumiy Lex.uz API tadqiqotda topilmadi. Rasmiy PDF va Word eksporti alohida hujjat darajasida mavjud. Keng kölamli tijoriy ma’lumot oqimi uçun “Adolat” operatoridan API, eksport va foydalaniş şartlari olinadi. [Tizim haqida](https://lex.uz/lexuz) · [Operator](https://lex.uz/uz/about) · [Axborot şartlari](https://lex.uz/uz/axborot)
 
-Normativ hujjat matni, tahririy sharhlar va ma’lumotlar bazasining tuzilishi uchun huquqiy rejim alohida baholanadi. Ushbu katalog tanlangan normativ moddalarga manba ko‘rsatadi. [Mualliflik huquqi qonuni, 7–8-moddalar](https://lex.uz/docs/-1022944)
+Normativ hujjat matni, tahririy şarhlar va ma’lumotlar bazasining tuzilişi uçun huquqiy rejim alohida baholanadi. Uşbu katalog tanlangan normativ moddalarga manba körsatadi. [Mualliflik huquqi qonuni, 7–8-moddalar](https://lex.uz/docs/-1022944)
