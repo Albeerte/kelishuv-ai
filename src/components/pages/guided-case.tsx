@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  Clipboard,
   FileText,
   Loader2,
   Paperclip,
@@ -116,6 +117,7 @@ function GuidedCase() {
   const [result, setResult] = useState<Pick<CaseRecord, "id" | "title"> | null>(null);
   const [invitationUrl, setInvitationUrl] = useState("");
   const [invitationError, setInvitationError] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
   const [uploadFailures, setUploadFailures] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -142,7 +144,12 @@ function GuidedCase() {
         if (restoredDraft.caseId) {
           setResult({ id: restoredDraft.caseId, title: restoredDraft.title });
           setUploadFailures(restoredDraft.uploadFailures || []);
-          setInvitationUrl(restoredDraft.invitationUrl || "");
+          setInvitationUrl(
+            restoredDraft.invitationUrl
+              ? new URL(restoredDraft.invitationUrl, window.location.origin)
+                  .href
+              : "",
+          );
           if (restoredDraft.invite && !restoredDraft.invitationUrl)
             setInvitationError("Taklifni qayta yaratishingiz mumkin.");
         }
@@ -318,7 +325,7 @@ function GuidedCase() {
             },
           );
           if (!active.current) return;
-          url = invitation.invitationUrl;
+          url = new URL(invitation.invitationUrl, window.location.origin).href;
           setInvitationUrl(url);
         } catch (error) {
           if (!active.current) return;
@@ -402,6 +409,25 @@ function GuidedCase() {
               aria-label={t("Taklif havolasi")}
               onFocus={(event) => event.target.select()}
             />
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(invitationUrl);
+                  setCopyStatus("Havola nusxalandi");
+                } catch {
+                  setCopyStatus("Havolani belgilab nusxalang");
+                }
+              }}
+            >
+              <Clipboard size={18} />
+              <T>Havolani nusxalash</T>
+            </Button>
+            {copyStatus && (
+              <p role="status">
+                <T>{copyStatus}</T>
+              </p>
+            )}
           </div>
         )}
         {invitationError && (
@@ -438,13 +464,13 @@ function GuidedCase() {
                     },
                   );
                   if (active.current) {
-                    setInvitationUrl(invitation.invitationUrl);
-                    setInvitationError("");
-                    saveResult(
-                      result,
-                      uploadFailures,
+                    const sharedUrl = new URL(
                       invitation.invitationUrl,
-                    );
+                      window.location.origin,
+                    ).href;
+                    setInvitationUrl(sharedUrl);
+                    setInvitationError("");
+                    saveResult(result, uploadFailures, sharedUrl);
                   }
                 } catch (error) {
                   if (active.current)

@@ -24,6 +24,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  Sparkles,
   Users,
   X,
 } from "lucide-react";
@@ -135,7 +136,7 @@ function renderPage(path: string) {
     return path.endsWith("/chat") ? (
       <ChatPage caseId={id} />
     ) : (
-      <CaseDetail id={id} />
+      <CaseDetail key={id} id={id} />
     );
   }
   if (path === "/dashboard") return <Cases />;
@@ -261,12 +262,14 @@ function Shell({ pathname }: { pathname: string }) {
     "/api/notifications",
   );
   const counts = useData<{ cases: CaseRecord[] }>("/api/cases");
-  const navigation =
-    user.role === "ADMIN"
+  const navigation = [
+    ...(user.role === "ADMIN"
       ? adminNavigation
       : user.role === "MEDIATOR"
         ? mediatorNavigation
-        : citizenNavigation;
+        : citizenNavigation),
+    { href: "/assistant", label: "AI yordamchi", icon: Sparkles },
+  ];
   const active = (href: string) =>
     href === "/"
       ? pathname === "/"

@@ -231,6 +231,11 @@ function ensureCurrentSigners(
   record: CaseRecord,
   version: AgreementVersion,
 ) {
+  if (record.status === "CLOSED")
+    throw new MediationError(
+      409,
+      "Nizo yopilgan. Imzolash jarayoni yakunlangan.",
+    );
   const actual = caseParticipants(data, record);
   if (
     !hasMutualAppointment(record) ||

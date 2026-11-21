@@ -6,7 +6,8 @@ import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
 import { T, useI18n } from "@/lib/i18n";
 import { api } from "@/lib/utils";
-import type { AssistantReply } from "@/lib/assistant";
+import { useData } from "@/lib/use-data";
+import type { AssistantReply, AssistantUsage } from "@/lib/assistant-types";
 
 export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
   const { t, locale } = useI18n();
@@ -21,22 +22,42 @@ export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
   const [externalConsent, setExternalConsent] = useState(false);
   const end = useRef<HTMLDivElement>(null);
   const sending = useRef(false);
+  const usage = useData<{ usage: AssistantUsage }>(
+    open || fullPage ? "/api/assistant/usage" : null,
+  );
+  const [quota, setQuota] = useState<AssistantUsage | null>(null);
+  const lastRequest = useRef({ id: "", hash: "" });
+  const [failedStatus, setFailedStatus] = useState<number | undefined>();
+  useEffect(() => {
+    if (usage.data) setQuota(usage.data.usage);
+  }, [usage.data]);
   useEffect(() => {
     end.current?.scrollIntoView({ block: "nearest" });
   }, [turns, busy]);
-  async function ask(value: string) {
-    if (sending.current || value.trim().length < 3) return;
+  async function ask(value: string, retry = false) {
+    if (
+      sending.current ||
+      !quota ||
+      (!quota.remaining && !retry) ||
+      value.trim().length < 3
+    )
+      return;
     sending.current = true;
     setQuestion(value);
     setFailedQuestion("");
     setBusy(true);
     setError("");
+    const context = turns.slice(-2).map((turn) => turn.question);
+    const hash = JSON.stringify([value, context, externalConsent, locale]);
+    if (lastRequest.current.hash !== hash)
+      lastRequest.current = { id: crypto.randomUUID(), hash };
     try {
       const reply = await api<AssistantReply>("/api/assistant", {
         method: "POST",
         body: JSON.stringify({
+          requestId: lastRequest.current.id,
           question: value,
-          context: turns.slice(-2).map((turn) => turn.question),
+          context,
           externalConsent,
           locale,
         }),
@@ -46,9 +67,14 @@ export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
         { question: value, reply },
       ]);
       setQuestion("");
+      if (reply.usage) setQuota(reply.usage);
+      lastRequest.current = { id: "", hash: "" };
+      usage.reload();
     } catch (failure) {
       setError((failure as Error).message);
       setFailedQuestion(value);
+      setFailedStatus((failure as Error & { status?: number }).status);
+      usage.reload();
     } finally {
       sending.current = false;
       setBusy(false);
@@ -56,6 +82,24 @@ export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
   }
   const content = (
     <div className="kelishuv-assistant">
+      <div className="assistant-quota" role="status">
+        <strong>
+          <T>10 ta bepul so‘rov</T>
+        </strong>
+        {quota && (
+          <span>
+            <T>Qoldi</T> {quota.remaining} / {quota.limit}
+          </span>
+        )}
+      </div>
+      {usage.error && (
+        <p className="form-error" role="alert">
+          {usage.error}{" "}
+          <button className="text-link" onClick={usage.reload}>
+            <T>Qayta yuklash</T>
+          </button>
+        </p>
+      )}
       <div className="assistant-intro">
         <Sparkles size={24} />
         <p>
@@ -84,7 +128,11 @@ export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
               "Ish haqim to‘lanmagan. Qaysi huquqlarim bor?",
               "Hujjat tariflari qancha?",
             ].map((text) => (
-              <button key={text} onClick={() => ask(text)} disabled={busy}>
+              <button
+                key={text}
+                onClick={() => ask(text)}
+                disabled={busy || !quota?.remaining}
+              >
                 <T>{text}</T>
               </button>
             ))}
@@ -117,11 +165,36 @@ export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
                     </small>
                     <p lang={source.originalLanguage}>{source.summary}</p>
                     <small>
-                      <T>Tahrir</T>{" "}
-                      {source.editionDate || source.verifiedAt.slice(0, 10)}
+                      <T>
+                        {source.kind === "COURT_PRACTICE"
+                          ? "Sud amaliyotiga oid ochiq material"
+                          : source.kind === "PLENUM"
+                            ? "Oliy sud Plenumi qarori"
+                            : "Qonunchilik manbasi"}
+                      </T>
+                      {" · "}
+                      <T>
+                        {source.current
+                          ? "Manbadan tekshirildi"
+                          : "Saqlangan nusxa"}
+                      </T>{" "}
+                      {source.current
+                        ? source.verifiedAt.slice(0, 10)
+                        : source.snapshotDate ||
+                          source.editionDate ||
+                          source.verifiedAt.slice(0, 10)}
                     </small>
+                    {source.editionDate && (
+                      <small>
+                        <T>Tahrir</T> {source.editionDate}
+                      </small>
+                    )}
                     <a href={source.url} target="_blank" rel="noreferrer">
-                      <T>Lex.uz da moddani ochish</T>
+                      <T>
+                        {source.url.includes("lex.uz/")
+                          ? "Lex.uz da moddani ochish"
+                          : "Sud manbasini ochish"}
+                      </T>
                     </a>
                   </div>
                 </div>
@@ -167,12 +240,12 @@ export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
             placeholder={t("Savolingizni yozing...")}
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            disabled={busy}
+            disabled={busy || !quota?.remaining}
           />
         </label>
         <Button
           type="submit"
-          disabled={busy || question.trim().length < 3}
+          disabled={busy || !quota?.remaining || question.trim().length < 3}
           aria-label={t("Savolni yuborish")}
         >
           <Send size={20} />
@@ -181,13 +254,20 @@ export function AssistantWidget({ fullPage = false }: { fullPage?: boolean }) {
       {error && (
         <p role="alert" className="form-error">
           {error}{" "}
-          <button
-            className="text-link"
-            onClick={() => ask(failedQuestion)}
-            disabled={busy}
-          >
-            <T>Qayta urinish</T>
-          </button>
+          {failedStatus !== 429 && (
+            <button
+              className="text-link"
+              onClick={() => ask(failedQuestion, true)}
+              disabled={busy}
+            >
+              <T>Qayta urinish</T>
+            </button>
+          )}
+        </p>
+      )}
+      {quota?.remaining === 0 && (
+        <p className="info-note">
+          <T>10 ta bepul so‘rovdan foydalandingiz.</T>
         </p>
       )}
       <label className="consent-checkbox">

@@ -34,6 +34,7 @@ import { handleMediationRequest, publicInvitation } from "@/lib/mediation-api";
 import { handleKelishuvRequest } from "@/lib/kelishuv-api";
 import { createReminderNotifications } from "@/lib/kelishuv-domain";
 import { handleAssistantRequest } from "@/lib/assistant-api";
+import { handleCaseClosureRequest } from "@/lib/case-closure";
 import { handleIdentityRequest, identityWebhook } from "@/lib/identity-api";
 import {
   handleServiceRequest,
@@ -263,8 +264,19 @@ async function handle(request: NextRequest): Promise<Response> {
         ai: process.env.FASTAPI_URL ? "configured" : "local",
         demo: LOCAL_DEMO,
       });
-    const assistantResponse = await handleAssistantRequest(request);
-    if (assistantResponse) return assistantResponse;
+    if (route === "assistant" || route === "assistant/usage") {
+      let assistantUser: User | undefined;
+      try {
+        assistantUser = await actor(request);
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 401) throw error;
+      }
+      const assistantResponse = await handleAssistantRequest(
+        request,
+        assistantUser,
+      );
+      if (assistantResponse) return assistantResponse;
+    }
     const webhookResponse = await identityWebhook(request, mutateStore);
     if (webhookResponse) return webhookResponse;
     const paymeResponse = await handlePaymeRequest(request, mutateStore);
@@ -357,6 +369,17 @@ async function handle(request: NextRequest): Promise<Response> {
             403,
             "Hisob vakolati o‘zgardi. Sahifani yangilang.",
           );
+        if (
+          method !== "GET" &&
+          method !== "HEAD" &&
+          parts[0] === "cases" &&
+          parts[2] !== "closure" &&
+          data.cases.find((item) => item.id === parts[1])?.status === "CLOSED"
+        )
+          throw new ApiError(
+            409,
+            "Nizo yopilgan. Jarayon tarixini ko‘rishingiz mumkin.",
+          );
         return operation(data);
       });
     }
@@ -366,6 +389,12 @@ async function handle(request: NextRequest): Promise<Response> {
       mutateAsUser,
     );
     if (identityResponse) return identityResponse;
+    const closureResponse = await handleCaseClosureRequest(
+      request,
+      user,
+      mutateAsUser,
+    );
+    if (closureResponse) return closureResponse;
     const serviceResponse = await handleServiceRequest(
       request,
       user,

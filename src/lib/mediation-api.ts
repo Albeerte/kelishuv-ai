@@ -426,16 +426,13 @@ export async function handleMediationRequest(
         );
       const current = data.users.find((item) => item.id === user.id)!;
       const matches = flow.invitedPhone
-        ? Boolean(
-            current.phoneVerifiedAt &&
-            accountPhone(current.phone) === flow.invitedPhone,
-          )
+        ? accountPhone(current.phone) === flow.invitedPhone
         : flow.invitedEmail === current.email.toLowerCase();
       if (!matches)
         throw new MediationError(
           403,
           flow.invitedPhone
-            ? "Taklifdagi telefonni profilingizda SMS orqali tasdiqlang va shu hisobdan qo‘shiling."
+            ? "Taklif yuborilgan telefon raqamli hisobga kiring yoki shu raqam bilan ro‘yxatdan o‘ting."
             : "Ushbu taklif uchun ko‘rsatilgan emaildagi hisobga kiring.",
         );
       if (flow.respondentId && flow.respondentId !== user.id)
@@ -454,6 +451,23 @@ export async function handleMediationRequest(
   if (parts[0] !== "cases" || !parts[1]) return null;
   const id = parts[1];
   const action = parts[2];
+  if (action === "invitation" && method === "GET") {
+    const record = requireCase(await readStore(), id, user);
+    if (record.userId !== user.id)
+      throw new MediationError(403, "Taklif havolasini murojaatchi ko‘radi.");
+    const flow = record.mediation;
+    if (
+      !flow?.invitationToken ||
+      Date.parse(flow.invitationExpiresAt || "") <= Date.now()
+    )
+      return NextResponse.json({ invitationUrl: null });
+    return NextResponse.json(
+      {
+        invitationUrl: `${applicationOrigin(request)}/invite/${flow.invitationToken}`,
+      },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  }
   if (
     ![
       "invitation",
@@ -526,6 +540,7 @@ export async function handleMediationRequest(
       )
       .parse(input);
     const token = randomBytes(32).toString("hex");
+    const origin = applicationOrigin(request);
     const expiresAt = new Date(Date.now() + 7 * 86400000).toISOString();
     const invitation = await mutate((data) => {
       const record = requireCase(data, id, user);
@@ -714,7 +729,7 @@ export async function handleMediationRequest(
       (item) => item.id === invitation.deliveryId,
     );
     return NextResponse.json({
-      invitationUrl: `/invite/${invitation.token}`,
+      invitationUrl: `${origin}/invite/${invitation.token}`,
       expiresAt: invitation.expiresAt,
       smsStatus: delivery?.status || null,
     });

@@ -27,6 +27,7 @@ import {
   Video,
 } from "lucide-react";
 import { Button } from "../ui/button";
+import { CaseClosureControls } from "../case-closure";
 
 import {
   Empty,
@@ -404,6 +405,7 @@ export function CaseDetail({ id }: { id: string }) {
         </PageHeading>
       </div>
       <CaseJourney record={record} mediatorName={data.mediator?.name} />
+      <CaseClosureControls record={record} />
       <div className="tabs detail-tabs">
         {[
           { key: "overview", label: "Umumiy ma’lumot" },

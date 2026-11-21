@@ -106,3 +106,16 @@ Yordamchi sayt bo‘yicha yo‘l-yo‘riq, katalogdagi modda va Lex.uz havolalar
 Yakuniy tekshiruvdan so‘ng global namoyish muhitidagi sinov hisoblari, nizolar, buyurtmalar va uchta sinov fayli identifikatorlari bo‘yicha chiqarildi. Asosiy lokal saqlashdagi beshta hisob, beshta nizo va bitta sessiya boshlang‘ich nusxa bilan solishtirildi. Asl yozuvlarning mazmuni bo‘yicha moslik tasdiqlandi.
 
 SMS, haqiqiy biometrik tekshiruv, Payme va Zoom servis sinovlari biznes hisoblari hamda kalitlar sozlanishini kutmoqda. Face ID uchun provayderga mos bridge, bank payout uchun biznes hisob-kitob sozlamasi kerak. Ommaviy namoyish yordamchisi manbalar katalogi rejimida ishlaydi. Ulanish shartnomalari va boshlang‘ich tariflar [kengaytma rejasida](KELISHUV_EXPANSION_PLAN.md), mahsulot talablari [professional promptda](KELISHUV_MASTER_PROMPT.md) berilgan.
+
+## RAG yordamchi, taklif va nizoni yopish, 2026-11-21
+
+- `npm test` orqali 59 ta regressiya o‘tdi. Bepul limit, bir xil so‘rovni qayta yuborish, xatodan keyin limitni qaytarish, noto‘g‘ri cookie, Lex.uz identifikatorlari, kirill modda sarlavhalari va modeldagi manbasiz foizlar qamraldi.
+- Orama BM25 korpusdagi 25 hujjat va 7 368 moddadan qidiradi. Lokal `bge-m3` embeddinglari va `qwen3-vl:8b-instruct` javobi haqiqiy so‘rovda tekshirildi. Ish haqi haqidagi javob Mehnat kodeksining 253 va 333-moddalariga joriy Lex.uz havolalarini qaytardi.
+- Ngrok orqali yangi telefonli hisob, besh bosqichli murojaat, to‘liq HTTPS taklifini nusxalash, sahifa yangilanganda uni olish va ikkinchi tarafning ro‘yxatdan o‘tib qo‘shilishi tekshirildi.
+- Ikkala tarafning mustaqil kelishuvni tasdiqlashi, murojaatni qaytarib olish, yopilgan ish arxivini ochish va yopilgan ishga yangi xabar yozishning rad etilishi tekshirildi.
+- Har hisob uchun jami 10 ta so‘rov qabul qilindi, 11-so‘rov limit bilan qaytdi. Limit sahifa yangilanganda saqlandi va boshqa hisobga ta’sir qilmadi.
+- Mobil qo‘shilish sahifasi, yordamchi desktop sahifasi va mobil limit holatida uchta axe-core WCAG A/AA auditi xatosiz yakunlandi. Brauzerda `pageerror` qaytmadi.
+- Administrator va mediatorning mavjud loginlari ngrok manzilida tekshirildi. Rol ruxsatlari va yangi yordamchi menyusi ishladi.
+- Sinov yozuvlari aniq identifikatorlar bo‘yicha tozalandi. Boshqa yozuvlarning joriy holati va audit zanjiri tekshirildi. Lokal bazadagi mavjud yozuvlar saqlandi.
+
+Jonli huquqiy qidiruv va sud materiallari qamrovi [yordamchi manbalari](ASSISTANT_DATA_SOURCES.md) hujjatida ko‘rsatilgan. Tekshiruv keng qamrovli huquqiy benchmark sifatida baholanmagan.

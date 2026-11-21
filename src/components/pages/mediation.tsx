@@ -1,7 +1,7 @@
 "use client";
 import { T as LocalizedText, translate as localizeText } from "@/lib/i18n";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Clipboard, FileCheck2, Handshake, MapPin, Phone, ShieldCheck } from "lucide-react";
 import { useProfile } from "../application";
 import { Brand, Empty, ErrorState, Loading, PageHeading } from "../shared";
@@ -186,6 +186,18 @@ export function CaseMediationPanel({
       (record.region === "Toshkent shahri" ? "Toshkent" : ""),
   );
   const [invitation, setInvitation] = useState("");
+  const savedInvitation = useData<{ invitationUrl: string | null }>(
+    owner && !finished && flow?.invitationExpiresAt && !flow.respondentId
+      ? `/api/cases/${record.id}/invitation`
+      : null,
+  );
+  useEffect(() => {
+    if (savedInvitation.data?.invitationUrl)
+      setInvitation(
+        new URL(savedInvitation.data.invitationUrl, window.location.origin)
+          .href,
+      );
+  }, [savedInvitation.data]);
   const [phone, setPhone] = useState(mine?.phone || user.phone);
   const [statement, setStatement] = useState(flow?.respondentStatement || "");
   const [checked, setChecked] = useState(false);
@@ -225,7 +237,7 @@ export function CaseMediationPanel({
           requestId: invitationRequest.current,
         }),
       });
-      setInvitation(`${window.location.origin}${result.invitationUrl}`);
+      setInvitation(new URL(result.invitationUrl, window.location.origin).href);
       setSmsStatus(result.smsStatus || "");
       toast("Taklif havolasi tayyor. Ikkinchi tarafga ulashing.");
       refresh();
@@ -382,7 +394,7 @@ export function CaseMediationPanel({
                       {smsStatus === "ACCEPTED"
                         ? "SMS provayder tomonidan qabul qilindi. Yetkazilishi operatorga bog‘liq."
                         : smsStatus === "UNCONFIGURED"
-                          ? "SMS xizmati ulanishini kutmoqda. Havolani ulashishingiz mumkin. Telefon egasi SMS tasdiqlashidan keyin qo‘shiladi."
+                          ? "SMS xizmati ulanishini kutmoqda. Shaxsiy havolani qarshi tarafga ulashing. U taklifdagi telefon raqamli hisobidan qo‘shiladi."
                           : "SMS yuborilishi tasdiqlanmadi. Havolani ulashing yoki keyin qayta urinib ko‘ring."}
                     </LocalizedText>
                   </p>
@@ -1111,7 +1123,9 @@ export function InvitationPage({ token }: { token: string }) {
         `/api/invitations/${token}/join`,
         { method: "POST" },
       );
-      window.location.assign(`/dashboard/cases/${result.case.id}`);
+      window.location.assign(
+        `/dashboard/cases/${result.case.id}/workbench?section=positions`,
+      );
     } catch (error) {
       setError((error as Error).message);
       setBusy(false);
@@ -1162,15 +1176,6 @@ export function InvitationPage({ token }: { token: string }) {
                     ? "Ochilmoqda..."
                     : "Ikkinchi taraf sifatida qo‘shilish"}
                 </Button>
-                {preview.data.phoneHint && (
-                  <Link
-                    href={`/verify?next=${encodeURIComponent(`/invite/${token}`)}`}
-                  >
-                    <LocalizedText>
-                      Taklifdagi telefonni SMS orqali tasdiqlash
-                    </LocalizedText>
-                  </Link>
-                )}
                 {profile.data.demo && profile.data.localDemo && (
                   <Button
                     variant="outline"
@@ -1192,7 +1197,8 @@ export function InvitationPage({ token }: { token: string }) {
             ) : (
               <p>
                 <LocalizedText>
-                  Davom etish uchun taklifdagi email bilan hisobga kiring.
+                  Davom etish uchun taklif yuborilgan telefon yoki email bilan
+                  hisobga kiring yoki ro‘yxatdan o‘ting.
                 </LocalizedText>
               </p>
             )}

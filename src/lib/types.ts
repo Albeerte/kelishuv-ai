@@ -17,6 +17,7 @@ import type {
   ServiceOrder,
   SmsDelivery,
 } from "./service-types";
+import type { AssistantRequestRecord } from "./assistant-types";
 export type Role = "CITIZEN" | "MEDIATOR" | "LAWYER" | "ADMIN" | "ORGANIZATION";
 export type DisputeType =
   | "MEHNAT"
@@ -220,6 +221,16 @@ export type CaseDocument = {
   visibility?: "MEDIATOR_ONLY" | "PARTIES";
 };
 export type CaseRecord = {
+  closure?: {
+    id: string;
+    kind: "WITHDRAWN" | "SETTLED_EXTERNALLY";
+    reason: string;
+    requestedBy: string;
+    requestedAt: string;
+    confirmations: string[];
+    status: "PENDING" | "CLOSED" | "DECLINED";
+    closedAt?: string;
+  };
   creationRequest?: { id: string; hash: string };
   hasPendingAgreement?: boolean;
   journeyVersion?: 3;
@@ -315,6 +326,7 @@ export type Notification = {
   emailRetryAt?: string;
 };
 export type AppData = {
+  assistantRequests?: AssistantRequestRecord[];
   identityChecks?: IdentityCheck[];
   phoneChallenges?: PhoneChallenge[];
   smsDeliveries?: SmsDelivery[];

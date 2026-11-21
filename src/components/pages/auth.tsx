@@ -111,9 +111,8 @@ export function AuthPage({ register }: { register: boolean }) {
         }
       }
       window.location.assign(
-        (register
-          ? `/verify${nextPath ? `?next=${encodeURIComponent(nextPath)}` : ""}`
-          : nextPath) ||
+        nextPath ||
+          (register ? "/verify" : "") ||
           (register && profile.user.role === "MEDIATOR" ? "/mediator" : "/"),
       );
     } catch (error) {

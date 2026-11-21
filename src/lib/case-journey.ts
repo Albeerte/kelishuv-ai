@@ -4,6 +4,13 @@ import { negotiationState } from "./negotiation";
 
 export function caseNextStep(record: CaseRecord, userId?: string) {
   const base = `/dashboard/cases/${record.id}/workbench`;
+  if (record.status === "CLOSED")
+    return {
+      label: "Yopilgan nizoni ko‘rish",
+      description:
+        record.closure?.reason || "Nizo tarixi va hujjatlar bilan tanishing.",
+      href: `/dashboard/cases/${record.id}`,
+    };
   if (record.hasPendingAgreement)
     return {
       label: "Hujjatni ko‘rish",

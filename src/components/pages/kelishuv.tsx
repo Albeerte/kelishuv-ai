@@ -55,6 +55,7 @@ import type {
 } from "@/lib/types";
 import { negotiationState } from "@/lib/negotiation";
 import { CaseServices } from "./services";
+import { CaseClosureControls } from "../case-closure";
 import type {
   Agreement,
   AgreementTerms,
@@ -242,6 +243,16 @@ export function CaseWorkbench({
   if (workspace.error || !workspace.data)
     return <ErrorState message={workspace.error} retry={workspace.reload} />;
   const data = workspace.data;
+  if (data.case.status === "CLOSED")
+    return (
+      <section className="panel service-panel">
+        <PageHeading title={data.case.title} />
+        <CaseClosureControls record={data.case} />
+        <Link href={`/dashboard/cases/${caseId}`}>
+          <LocalizedText>Nizoning arxivini ochish</LocalizedText>
+        </Link>
+      </section>
+    );
   return (
     <div className="case-workbench">
       <Link className="back-link" href={`/dashboard/cases/${caseId}`}>
@@ -284,6 +295,7 @@ export function CaseWorkbench({
           </button>
         ))}
       </nav>
+      <CaseClosureControls record={data.case} />
       {section === "positions" && (
         <>
           <PositionEditor

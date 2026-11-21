@@ -540,27 +540,136 @@ test("changing a phone invalidates verification and prevents duplicate phones", 
 test("public assistant returns catalog citations without reading private cases", async () => {
   const previous = process.env.AI_PROVIDER;
   process.env.AI_PROVIDER = "RULES";
+  const retrieval = loadSource("src/lib/legal-retrieval.ts");
+  const originalRetrieve = retrieval.retrieveLegalEvidence;
+  const store = loadSource("src/lib/store.ts");
+  const originalRead = store.readStore;
+  const legal = loadSource("src/lib/legal.ts");
+  retrieval.retrieveLegalEvidence = async (text) => ({
+    sources: [
+      ...new Map(
+        [
+          ...legal.analyzeLocal(text, legal.classify(text), 0).sources,
+          ...legal.searchLaws(text, legal.classify(text)),
+        ].map((source) => [source.id, source]),
+      ).values(),
+    ].map((source) => ({
+      ...source,
+      content: source.content || source.summary,
+      kind: "LAW",
+      current: false,
+    })),
+    documents: 25,
+    articles: 7368,
+    semantic: false,
+    live: false,
+    courtSources: 0,
+  });
+  store.readStore = async () => {
+    throw new Error("Assistant must not access private cases");
+  };
   try {
     const assistant = loadSource("src/lib/assistant.ts");
-    const legal = loadSource("src/lib/legal.ts");
-    const answer = await assistant.answerAssistant("Ish beruvchi ikki oylik ish haqimni to‘lamadi, qaysi qonun menga yordam beradi?", [], false, "uz");
+    const answer = await assistant.answerAssistant(
+      "Ish beruvchi ikki oylik ish haqimni to‘lamadi, qaysi qonun menga yordam beradi?",
+      [],
+      false,
+      "uz",
+    );
     assert.ok(answer.sources.length > 0);
     for (const source of answer.sources) {
-      assert.ok(legal.LEGAL_SOURCES.some(item => item.id === source.id && item.url === source.url && item.summary === source.summary));
+      assert.ok(
+        legal.LEGAL_SOURCES.some(
+          (item) =>
+            item.id === source.id &&
+            item.url === source.url &&
+            item.summary === source.summary,
+        ),
+      );
       assert.ok(source.verifiedAt);
       assert.match(source.url, /^https:\/\/lex\.uz\//);
     }
-    assert.equal((await assistant.answerAssistant("Sayt qanday ishlaydi?", [], false, "uz")).sources.length, 0);
-    assert.ok((await assistant.answerAssistant("Telefon sotib oldim, nuqsoni bor. Kafolat bo‘yicha qanday huquqlarim bor?", [], false, "uz")).sources.length > 0);
-    assert.match((await assistant.answerAssistant("Platforma narxi qancha?", [], false, "uz")).answer,/19 000/);
-    assert.match((await assistant.answerAssistant("Как работает платформа?", [], false, "ru")).answer,/Нажмите/);
-    assert.match((await assistant.answerAssistant("Сайт қандай ишлайди?", [], false, "uz-Cyrl")).answer,/орқали/);
-    const russian=await assistant.answerAssistant("Работодатель не выплатил зарплату, какие законы применяются?",[],false,'ru');
-    assert.match(russian.answer,/Сопоставьте/);
-    assert.ok(russian.sources.some(source=>source.url.includes('6257288')));
-    assert.ok(russian.sources.every(source=>source.originalLanguage==='uz'));
-    assert.ok((await assistant.answerAssistant('Сайтдан сифатсиз товар сотиб олдим',[],false,'uz-Cyrl')).sources.some(source=>source.url.includes('4704')));
-  } finally { if (previous === undefined) delete process.env.AI_PROVIDER; else process.env.AI_PROVIDER = previous; }
+    assert.equal(
+      (
+        await assistant.answerAssistant(
+          "Sayt qanday ishlaydi?",
+          [],
+          false,
+          "uz",
+        )
+      ).sources.length,
+      0,
+    );
+    assert.ok(
+      (
+        await assistant.answerAssistant(
+          "Telefon sotib oldim, nuqsoni bor. Kafolat bo‘yicha qanday huquqlarim bor?",
+          [],
+          false,
+          "uz",
+        )
+      ).sources.length > 0,
+    );
+    assert.match(
+      (
+        await assistant.answerAssistant(
+          "Platforma narxi qancha?",
+          [],
+          false,
+          "uz",
+        )
+      ).answer,
+      /19 000/,
+    );
+    assert.match(
+      (
+        await assistant.answerAssistant(
+          "Как работает платформа?",
+          [],
+          false,
+          "ru",
+        )
+      ).answer,
+      /Нажмите/,
+    );
+    assert.match(
+      (
+        await assistant.answerAssistant(
+          "Сайт қандай ишлайди?",
+          [],
+          false,
+          "uz-Cyrl",
+        )
+      ).answer,
+      /орқали/,
+    );
+    const russian = await assistant.answerAssistant(
+      "Работодатель не выплатил зарплату, какие законы применяются?",
+      [],
+      false,
+      "ru",
+    );
+    assert.match(russian.answer, /Сопоставьте/);
+    assert.ok(russian.sources.some((source) => source.url.includes("6257288")));
+    assert.ok(
+      russian.sources.every((source) => source.originalLanguage === "uz"),
+    );
+    assert.ok(
+      (
+        await assistant.answerAssistant(
+          "Сайтдан сифатсиз товар сотиб олдим",
+          [],
+          false,
+          "uz-Cyrl",
+        )
+      ).sources.some((source) => source.url.includes("4704")),
+    );
+  } finally {
+    retrieval.retrieveLegalEvidence = originalRetrieve;
+    store.readStore = originalRead;
+    if (previous === undefined) delete process.env.AI_PROVIDER;
+    else process.env.AI_PROVIDER = previous;
+  }
 });
 
 test("Payme distinguishes invalid requests from persistence failures", async () => {
@@ -577,13 +686,40 @@ test("Payme distinguishes invalid requests from persistence failures", async () 
 
 function serviceFixture() {
   const sample = structuredClone(record);
-  sample.type = 'SHARTNOMA';
-  sample.status = 'IN_PROGRESS';
+  sample.history = [];
+  sample.type = "SHARTNOMA";
+  sample.status = "IN_PROGRESS";
   sample.analysis = { sources: [] };
-  sample.mediation.initiatorConsent = { userId:'a',textVersion:mediation.CONSENT_VERSION };
-  sample.mediation.respondentConsent = { userId:'b',textVersion:mediation.CONSENT_VERSION };
-  sample.mediation.mediatorApprovals = ['a','b'].map(userId => ({userId,mediatorId:'mediator'}));
-  return { users:structuredClone(users), cases:[sample], mediators:structuredClone(data.mediators), serviceOrders:[], mediatorInvoices:[], sessions:[{id:'session',caseId:'case',type:'ONLINE',status:'SCHEDULED',scheduledAt:new Date(Date.now()+86400000).toISOString(),duration:30}], audit:[] };
+  sample.mediation.initiatorConsent = {
+    userId: "a",
+    textVersion: mediation.CONSENT_VERSION,
+  };
+  sample.mediation.respondentConsent = {
+    userId: "b",
+    textVersion: mediation.CONSENT_VERSION,
+  };
+  sample.mediation.mediatorApprovals = ["a", "b"].map((userId) => ({
+    userId,
+    mediatorId: "mediator",
+  }));
+  return {
+    users: structuredClone(users),
+    cases: [sample],
+    mediators: structuredClone(data.mediators),
+    serviceOrders: [],
+    mediatorInvoices: [],
+    sessions: [
+      {
+        id: "session",
+        caseId: "case",
+        type: "ONLINE",
+        status: "SCHEDULED",
+        scheduledAt: new Date(Date.now() + 86400000).toISOString(),
+        duration: 30,
+      },
+    ],
+    audit: [],
+  };
 }
 
 test("service orders reject irrelevant kind fields and preserve retry identity", async () => {
@@ -926,4 +1062,652 @@ test("Cyrillic contract descriptions avoid matching land substrings inside words
   const legal=loadSource('src/lib/legal.ts');
   assert.equal(legal.classify('Не исполнен договор на компьютер '),'SHARTNOMA');
   assert.equal(legal.classify('Ер ҳуқуқи бўйича низо'),'YER_MULK');
+});
+
+test("invitation responses contain a complete shareable link", async () => {
+  const sample = serviceFixture();
+  const first = {
+    ...users[0],
+    email: "first@example.test",
+    phone: "+998901234567",
+  };
+  sample.users[0] = first;
+  const record = sample.cases[0];
+  record.mediatorId = undefined;
+  record.mediation.respondentId = undefined;
+  record.history = [];
+  const store = loadSource("src/lib/store.ts");
+  const api = loadSource("src/lib/mediation-api.ts");
+  const originalRead = store.readStore;
+  const previousSms = process.env.ESKIZ_TOKEN;
+  store.readStore = async () => sample;
+  delete process.env.ESKIZ_TOKEN;
+  try {
+    const request = new NextRequest(
+      "http://localhost:2345/api/cases/case/invitation",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          requestId: randomUUID(),
+          phone: "+998931234567",
+          name: "Second party",
+          city: "Toshkent",
+        }),
+      },
+    );
+    const response = await api.handleMediationRequest(
+      request,
+      first,
+      async (operation) => operation(sample),
+    );
+    assert.match(
+      (await response.json()).invitationUrl,
+      /^https?:\/\/[^/]+\/invite\/[a-f0-9]{64}$/,
+    );
+  } finally {
+    store.readStore = originalRead;
+    if (previousSms === undefined) delete process.env.ESKIZ_TOKEN;
+    else process.env.ESKIZ_TOKEN = previousSms;
+  }
+});
+
+test("a private invitation link joins the matching phone account without an SMS provider", async () => {
+  const sample = serviceFixture();
+  const record = sample.cases[0];
+  const token = "c".repeat(64);
+  record.mediation.invitationHash = require("node:crypto")
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+  record.mediation.invitationExpiresAt = new Date(
+    Date.now() + 86400000,
+  ).toISOString();
+  record.mediation.invitedPhone = "+998931234567";
+  record.mediation.respondentId = undefined;
+  record.history = [];
+  const second = {
+    ...users[1],
+    phone: "+998931234567",
+    email: "second@example.test",
+    phoneVerifiedAt: undefined,
+  };
+  sample.users[1] = second;
+  const api = loadSource("src/lib/mediation-api.ts");
+  const response = await api.handleMediationRequest(
+    new NextRequest(`http://localhost:2345/api/invitations/${token}/join`, {
+      method: "POST",
+    }),
+    second,
+    async (operation) => operation(sample),
+  );
+  assert.equal((await response.json()).case.mediation.respondentId, second.id);
+  assert.equal(second.phoneVerifiedAt, undefined);
+});
+
+test("assistant quota grants ten requests and protects reservations and retries", () => {
+  const quota = loadSource("src/lib/assistant-quota.ts");
+  const sample = { assistantRequests: [] };
+  const firstId = randomUUID();
+  const first = quota.reserveAssistantRequest(
+    sample,
+    "user:a",
+    firstId,
+    "hash",
+  );
+  assert.throws(
+    () => quota.reserveAssistantRequest(sample, "user:a", firstId, "hash"),
+    /ishlanmoqda/,
+  );
+  assert.throws(
+    () => quota.reserveAssistantRequest(sample, "user:a", firstId, "changed"),
+    /o‘zgargan/,
+  );
+  first.status = "COMPLETE";
+  for (let index = 1; index < 10; index++)
+    quota.reserveAssistantRequest(sample, "user:a", randomUUID(), "hash");
+  assert.deepEqual(quota.assistantUsage(sample, "user:a"), {
+    limit: 10,
+    used: 10,
+    remaining: 0,
+  });
+  assert.throws(
+    () => quota.reserveAssistantRequest(sample, "user:a", randomUUID(), "hash"),
+    /10 ta/,
+  );
+  assert.equal(
+    quota.reserveAssistantRequest(sample, "user:a", firstId, "hash").id,
+    first.id,
+  );
+  assert.equal(quota.assistantUsage(sample, "user:b").remaining, 10);
+  sample.assistantRequests[1].status = "FAILED";
+  assert.equal(quota.assistantUsage(sample, "user:a").remaining, 1);
+});
+
+test("expired assistant reservations can be retried with a fresh attempt", () => {
+  const quota = loadSource("src/lib/assistant-quota.ts");
+  const sample = {};
+  const requestId = randomUUID();
+  const before = Date.now() - quota.ASSISTANT_REQUEST_LEASE_MS - 1;
+  const first = quota.reserveAssistantRequest(
+    sample,
+    "user:a",
+    requestId,
+    "hash",
+    before,
+  );
+  const attempt = first.attemptId;
+  assert.equal(quota.assistantUsage(sample, "user:a").used, 0);
+  const retried = quota.reserveAssistantRequest(
+    sample,
+    "user:a",
+    requestId,
+    "hash",
+  );
+  assert.notEqual(retried.attemptId, attempt);
+  assert.equal(sample.assistantRequests.length, 1);
+});
+
+test("case withdrawal closes the case once and cancels scheduled sessions", async () => {
+  const api = loadSource("src/lib/case-closure.ts");
+  const sample = serviceFixture();
+  const requestId = randomUUID();
+  const request = () =>
+    new NextRequest("http://localhost:2345/api/cases/case/closure", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "REQUEST",
+        requestId,
+        kind: "WITHDRAWN",
+        reason: "Mustaqil hal qilindi",
+      }),
+    });
+  const response = await api.handleCaseClosureRequest(
+    request(),
+    users[0],
+    async (operation) => operation(sample),
+  );
+  assert.equal((await response.json()).status, "CLOSED");
+  assert.equal(sample.sessions[0].status, "CANCELLED");
+  const auditLength = sample.audit.length;
+  await api.handleCaseClosureRequest(request(), users[0], async (operation) =>
+    operation(sample),
+  );
+  assert.equal(sample.audit.length, auditLength);
+  assert.equal(domain.verifyAudit(sample.audit), true);
+});
+
+test("external settlement requires both parties and rejects stale confirmations", async () => {
+  const api = loadSource("src/lib/case-closure.ts");
+  const sample = serviceFixture();
+  const requestId = randomUUID();
+  const request = (body) =>
+    new NextRequest("http://localhost:2345/api/cases/case/closure", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  await api.handleCaseClosureRequest(
+    request({
+      action: "REQUEST",
+      requestId,
+      kind: "SETTLED_EXTERNALLY",
+      reason: "O‘zaro kelishdik",
+    }),
+    users[0],
+    async (operation) => operation(sample),
+  );
+  assert.equal(sample.cases[0].status, "IN_PROGRESS");
+  assert.equal(sample.cases[0].closure.status, "PENDING");
+  await assert.rejects(
+    api.handleCaseClosureRequest(
+      request({ action: "RESPOND", requestId: randomUUID(), accept: true }),
+      users[1],
+      async (operation) => operation(sample),
+    ),
+    /yangilangan/,
+  );
+  await assert.rejects(
+    api.handleCaseClosureRequest(
+      request({ action: "RESPOND", requestId, accept: true }),
+      users[3],
+      async (operation) => operation(sample),
+    ),
+    /nizo tarafi/,
+  );
+  await api.handleCaseClosureRequest(
+    request({ action: "RESPOND", requestId, accept: true }),
+    users[1],
+    async (operation) => operation(sample),
+  );
+  assert.equal(sample.cases[0].status, "CLOSED");
+  assert.deepEqual(sample.cases[0].closure.confirmations, ["a", "b"]);
+});
+
+test("RAG retrieves articles outside the selected catalog and rejects repealed live sources", async () => {
+  const retrieval = loadSource("src/lib/legal-retrieval.ts");
+  const originalFetch = global.fetch;
+  const previous = process.env.AI_RAG_EMBEDDINGS;
+  process.env.AI_RAG_EMBEDDINGS = "false";
+  try {
+    global.fetch = async () => {
+      throw new Error("offline");
+    };
+    const answer = await retrieval.retrieveLegalEvidence(
+      "Soliq to‘lovchining huquqlari va majburiyatlari",
+    );
+    assert.equal(answer.articles, 7368);
+    assert.equal(answer.semantic, false);
+    assert.ok(
+      answer.sources.some((source) => source.id.startsWith("corpus-soliq")),
+    );
+    assert.ok(answer.sources.every((source) => source.current === false));
+    const labor = await retrieval.lexicalCandidates(
+      "Работодатель не выплатил зарплату",
+    );
+    assert.ok(labor.some((source) => source.title.includes("Mehnat")));
+    global.fetch = async () =>
+      new Response(
+        '<div class="act_warning">Hujjat kuchini yo‘qotgan 20.11.2023</div><div id="divCont"></div>',
+      );
+    await assert.rejects(retrieval.lexDocument("999991"), /repealed/);
+    global.fetch = async () =>
+      new Response("", {
+        status: 302,
+        headers: { location: "http://127.0.0.1:11434/api/tags" },
+      });
+    await assert.rejects(
+      retrieval.officialText("https://lex.uz/uz/docs/-999992"),
+      /redirect/,
+    );
+  } finally {
+    global.fetch = originalFetch;
+    if (previous === undefined) delete process.env.AI_RAG_EMBEDDINGS;
+    else process.env.AI_RAG_EMBEDDINGS = previous;
+  }
+});
+
+test("assistant synthesis accepts retrieved citations and falls back on invented IDs", async () => {
+  const retrieval = loadSource("src/lib/legal-retrieval.ts");
+  const assistant = loadSource("src/lib/assistant.ts");
+  const previousRetrieve = retrieval.retrieveLegalEvidence;
+  const previousStatus = provider.getAIProviderStatus;
+  const previousRun = provider.runStructuredAI;
+  const source = {
+    id: "tax-rights",
+    title: "Soliq kodeksi",
+    article: "21-modda",
+    summary: "Retrieved official excerpt",
+    content: "Retrieved official excerpt",
+    url: "https://lex.uz/docs/-4674902",
+    verifiedAt: new Date().toISOString(),
+    kind: "LAW",
+    current: true,
+  };
+  retrieval.retrieveLegalEvidence = async () => ({
+    sources: [source],
+    documents: 25,
+    articles: 7368,
+    semantic: true,
+    live: true,
+    courtSources: 0,
+  });
+  provider.getAIProviderStatus = async () => ({
+    available: true,
+    provider: "OLLAMA",
+    local: true,
+  });
+  let sent;
+  provider.runStructuredAI = async (schema, system, prompt) => {
+    sent = JSON.parse(prompt);
+    return {
+      model: "local-test",
+      data: {
+        findings: [
+          {
+            sourceId: "tax-rights",
+            explanation: "Soliq to‘lovchining huquqlariga tegishli izoh.",
+          },
+        ],
+        steps: ["Soliq hujjatlarini tayyorlang."],
+        clarification: "",
+      },
+    };
+  };
+  try {
+    const answer = await assistant.answerAssistant(
+      "Soliq to‘lovchining huquqlari qanday?",
+      [],
+      false,
+      "uz",
+    );
+    assert.match(answer.mode, /RAG/);
+    assert.match(answer.answer, /21-modda/);
+    assert.equal(answer.sources[0].id, source.id);
+    assert.equal(sent.evidence[0].text, source.content);
+    provider.runStructuredAI = async () => ({
+      model: "unverified-number",
+      data: {
+        findings: [
+          {
+            sourceId: source.id,
+            explanation: "Soliq imtiyozi 6 foizi miqdorida.",
+          },
+        ],
+        steps: ["6 foiz to‘lashni talab qiling."],
+        clarification: "6 foiz miqdorida to‘lanadi.",
+      },
+    });
+    const grounded = await assistant.answerAssistant(
+      "Soliq to‘lovchining huquqlari qanday?",
+      [],
+      false,
+      "uz",
+    );
+    assert.doesNotMatch(grounded.answer + grounded.steps.join(" "), /6 foiz/);
+    assert.ok(grounded.answer.includes(source.content));
+    provider.runStructuredAI = async () => ({
+      model: "bad",
+      data: {
+        findings: [
+          {
+            sourceId: "invented",
+            explanation: "This unsupported claim must be discarded.",
+          },
+        ],
+        steps: ["Discarded step."],
+        clarification: "",
+      },
+    });
+    const fallback = await assistant.answerAssistant(
+      "Soliq to‘lovchining huquqlari qanday?",
+      [],
+      false,
+      "uz",
+    );
+    assert.doesNotMatch(fallback.mode, /RAG/);
+    assert.doesNotMatch(fallback.answer, /unsupported/);
+    assert.equal(fallback.sources[0].id, source.id);
+  } finally {
+    retrieval.retrieveLegalEvidence = previousRetrieve;
+    provider.getAIProviderStatus = previousStatus;
+    provider.runStructuredAI = previousRun;
+  }
+});
+
+test("assistant HTTP quota is per account, retries are free, and failures release a slot", async () => {
+  const store = loadSource("src/lib/store.ts");
+  const assistant = loadSource("src/lib/assistant.ts");
+  const limiter = loadSource("src/lib/rate-limit.ts");
+  const api = loadSource("src/lib/assistant-api.ts");
+  const originals = {
+    read: store.readStore,
+    mutate: store.mutateStore,
+    key: store.encryptionKey,
+    answer: assistant.answerAssistant,
+    rate: limiter.withinRateLimit,
+  };
+  const sample = { users: structuredClone(users), assistantRequests: [] };
+  store.readStore = async () => sample;
+  store.mutateStore = async (operation) => operation(sample);
+  store.encryptionKey = () => Buffer.alloc(32, 7);
+  limiter.withinRateLimit = async () => true;
+  let calls = 0;
+  let reject = false;
+  assistant.answerAssistant = async () => {
+    calls++;
+    if (reject) throw new Error("Temporary failure");
+    return {
+      answer: "Prepared answer",
+      steps: [],
+      sources: [],
+      links: [],
+      mode: "test",
+    };
+  };
+  const body = { requestId: randomUUID(), question: "Sayt qanday ishlaydi?" };
+  const request = (value = body, cookie) =>
+    new NextRequest("https://example.test/api/assistant", {
+      method: "POST",
+      headers: cookie ? { cookie } : {},
+      body: JSON.stringify(value),
+    });
+  try {
+    const first = await api.handleAssistantRequest(request(), users[0]);
+    assert.equal((await first.json()).usage.remaining, 9);
+    const retry = await api.handleAssistantRequest(request(), users[0]);
+    assert.equal((await retry.json()).usage.used, 1);
+    assert.equal(calls, 1);
+    const conflict = await api.handleAssistantRequest(
+      request({ ...body, question: "Boshqa savol" }),
+      users[0],
+    );
+    assert.equal(conflict.status, 409);
+    reject = true;
+    await assert.rejects(
+      api.handleAssistantRequest(
+        request({ ...body, requestId: randomUUID() }),
+        users[0],
+      ),
+      /Temporary/,
+    );
+    reject = false;
+    for (let index = 1; index < 10; index++)
+      await api.handleAssistantRequest(
+        request({ ...body, requestId: randomUUID() }),
+        users[0],
+      );
+    assert.equal(
+      (
+        await api.handleAssistantRequest(
+          request({ ...body, requestId: randomUUID() }),
+          users[0],
+        )
+      ).status,
+      429,
+    );
+    assert.equal(
+      (await (await api.handleAssistantRequest(request(), users[1])).json())
+        .usage.remaining,
+      9,
+    );
+    const guest = await api.handleAssistantRequest(
+      new NextRequest("https://example.test/api/assistant/usage"),
+    );
+    const cookie = guest.headers.get("set-cookie").split(";")[0];
+    assert.match(guest.headers.get("set-cookie"), /HttpOnly/i);
+    assert.match(guest.headers.get("set-cookie"), /Secure/i);
+    assert.equal(
+      (await (await api.handleAssistantRequest(request(body, cookie))).json())
+        .usage.remaining,
+      9,
+    );
+    assert.equal(
+      (await (await api.handleAssistantRequest(request(body, cookie))).json())
+        .usage.remaining,
+      9,
+    );
+    const guestFresh = await api.handleAssistantRequest(
+      new NextRequest("https://example.test/api/assistant/usage"),
+    );
+    assert.equal((await guestFresh.json()).usage.remaining, 10);
+  } finally {
+    store.readStore = originals.read;
+    store.mutateStore = originals.mutate;
+    store.encryptionKey = originals.key;
+    assistant.answerAssistant = originals.answer;
+    limiter.withinRateLimit = originals.rate;
+  }
+});
+
+test("malformed assistant cookies rotate safely and unjoined cases can be closed by their owner", async () => {
+  const store = loadSource("src/lib/store.ts");
+  const assistantApi = loadSource("src/lib/assistant-api.ts");
+  const originalRead = store.readStore;
+  const originalKey = store.encryptionKey;
+  store.readStore = async () => ({ assistantRequests: [] });
+  store.encryptionKey = () => Buffer.alloc(32, 3);
+  try {
+    const cookie = `kelishuv-assistant=${randomUUID()}.${"é".repeat(43)}`;
+    const response = await assistantApi.handleAssistantRequest(
+      new NextRequest("https://example.test/api/assistant/usage", {
+        headers: { cookie },
+      }),
+    );
+    assert.equal(response.status, 200);
+    assert.ok(response.headers.get("set-cookie"));
+  } finally {
+    store.readStore = originalRead;
+    store.encryptionKey = originalKey;
+  }
+  const sample = serviceFixture();
+  delete sample.cases[0].mediation.respondentId;
+  const closure = loadSource("src/lib/case-closure.ts");
+  await closure.handleCaseClosureRequest(
+    new NextRequest("http://localhost:2345/api/cases/case/closure", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "REQUEST",
+        requestId: randomUUID(),
+        kind: "SETTLED_EXTERNALLY",
+        reason: "Taraflar mustaqil kelishdi",
+      }),
+    }),
+    users[0],
+    async (op) => op(sample),
+  );
+  assert.equal(sample.cases[0].status, "CLOSED");
+  assert.deepEqual(sample.cases[0].closure.confirmations, ["a"]);
+  assert.equal(sample.sessions[0].status, "CANCELLED");
+});
+
+test("assistant allows ten queries through both route and account rate limits", async () => {
+  const store = loadSource("src/lib/store.ts");
+  const assistant = loadSource("src/lib/assistant.ts");
+  const limiter = loadSource("src/lib/rate-limit.ts");
+  const api = loadSource("src/lib/assistant-api.ts");
+  const originalRead = store.readStore,
+    originalMutate = store.mutateStore,
+    originalAnswer = assistant.answerAssistant;
+  const user = { ...users[0], id: randomUUID() };
+  const sample = { users: [user], assistantRequests: [] };
+  const ip = randomUUID();
+  store.readStore = async () => sample;
+  store.mutateStore = async (operation) => operation(sample);
+  assistant.answerAssistant = async () => ({
+    answer: "Prepared answer",
+    steps: [],
+    sources: [],
+    links: [],
+    mode: "test",
+  });
+  try {
+    for (let index = 0; index < 10; index++) {
+      assert.equal(await limiter.withinRateLimit(`assistant:${ip}`, 60), true);
+      const request = new NextRequest("https://example.test/api/assistant", {
+        method: "POST",
+        headers: { "x-forwarded-for": ip },
+        body: JSON.stringify({
+          requestId: randomUUID(),
+          question: "Sayt qanday ishlaydi?",
+        }),
+      });
+      const response = await api.handleAssistantRequest(request, user);
+      assert.equal(response.status, 200);
+      assert.equal((await response.json()).usage.remaining, 9 - index);
+    }
+  } finally {
+    store.readStore = originalRead;
+    store.mutateStore = originalMutate;
+    assistant.answerAssistant = originalAnswer;
+  }
+});
+
+test("legal synthesis rejects invented percentages and preserves supported numeric wording", () => {
+  const assistant = loadSource("src/lib/assistant.ts");
+  const source =
+    "333-modda. Kompensatsiya Markaziy bank stavkasining o‘n foizi miqdorida belgilanadi.";
+  assert.equal(
+    assistant.supportedLegalNumbers("Kompensatsiya 6 foizi miqdorida.", source),
+    false,
+  );
+  assert.equal(
+    assistant.supportedLegalNumbers(
+      "Kompensatsiya olti foizi miqdorida.",
+      source,
+    ),
+    false,
+  );
+  assert.equal(
+    assistant.supportedLegalNumbers("333-modda bo‘yicha 10 foiz.", source),
+    true,
+  );
+  assert.equal(
+    assistant.supportedLegalNumbers("Компенсация 6 процентов.", source),
+    false,
+  );
+  assert.equal(
+    assistant.supportedLegalNumbers("Stavka 5,5%.", "Stavka 5.5 foiz."),
+    true,
+  );
+  assert.equal(
+    assistant.supportedLegalNumbers("6 foiz.", "O‘n olti foiz."),
+    false,
+  );
+});
+
+test("live Lex retrieval preserves supplied identifiers and parses Cyrillic article headings", async () => {
+  const retrieval = loadSource("src/lib/legal-retrieval.ts");
+  const originalFetch = global.fetch;
+  const requested = [];
+  global.fetch = async (endpoint) => {
+    requested.push(String(endpoint));
+    return new Response(
+      '<title>Test law</title><div id="divCont"><div class="CLAUSE_DEFAULT lx_elem"><div id="article">21-модда. Солиқ тўловчининг ҳуқуқлари</div></div><div class="ACT_TEXT lx_elem"><div id="body">Ҳуқуқлар матни.</div></div></div>',
+    );
+  };
+  try {
+    const positive = await retrieval.lexDocument("987654321");
+    const negative = await retrieval.lexDocument("-987654322");
+    assert.equal(
+      positive.articles.get("21").content.includes("Ҳуқуқлар матни."),
+      true,
+    );
+    assert.equal(negative.articles.has("21"), true);
+    assert.deepEqual(requested, [
+      "https://lex.uz/uz/docs/987654321",
+      "https://lex.uz/uz/docs/-987654322",
+    ]);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("legal numeric grounding handles compound percentages and written deadlines", () => {
+  const assistant = loadSource("src/lib/assistant.ts");
+  assert.equal(
+    assistant.supportedLegalNumbers("Ikki yuz foiz.", "102 foiz."),
+    false,
+  );
+  assert.equal(
+    assistant.supportedLegalNumbers("Ikki yuz foiz.", "200 foiz."),
+    true,
+  );
+  assert.equal(
+    assistant.supportedLegalNumbers("O‘ttiz kun ichida.", "15 kun ichida."),
+    false,
+  );
+  assert.equal(
+    assistant.supportedLegalNumbers("O‘ttiz kun ichida.", "30 kun ichida."),
+    true,
+  );
+  assert.equal(
+    assistant.supportedLegalNumbers(
+      "Ikki yuz ellik ming so‘m.",
+      "250000 so‘m.",
+    ),
+    true,
+  );
+  assert.equal(
+    assistant.supportedLegalNumbers("Тридцать дней.", "15 kun."),
+    false,
+  );
 });
