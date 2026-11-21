@@ -1,0 +1,929 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const Module = require("node:module");
+const { test } = require("node:test");
+const ts = require("typescript");
+const { PDFDocument, PDFName, StandardFonts } = require("@cantoo/pdf-lib");
+const { createCanvas, loadImage } = require("@napi-rs/canvas");
+const JSZip = require("jszip");
+const { crc32 } = require("node:zlib");
+const { Document, Paragraph, Packer } = require("docx");
+
+// Compile server modules in memory so these tests use the application's logic.
+const cache = new Map();
+function loadSource(relativePath) {
+  const filename = path.resolve(relativePath);
+  if (cache.has(filename)) return cache.get(filename).exports;
+  const compiled = new Module(filename, module);
+  compiled.filename = filename;
+  compiled.paths = Module._nodeModulePaths(path.dirname(filename));
+  cache.set(filename, compiled);
+  const nativeRequire = compiled.require.bind(compiled);
+  compiled.require = (name) => {
+    if (name === "server-only") return {};
+    if (name.startsWith("@/")) {
+      const resolved = path.resolve("src", name.slice(2));
+      return resolved.endsWith(".json")
+        ? nativeRequire(resolved)
+        : loadSource(`${resolved}.ts`);
+    }
+    if (name.startsWith(".")) {
+      const resolved = path.resolve(path.dirname(filename), name);
+      if (fs.existsSync(`${resolved}.ts`)) return loadSource(`${resolved}.ts`);
+    }
+    return nativeRequire(name);
+  };
+  const output = ts.transpileModule(fs.readFileSync(filename, "utf8"), {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+      esModuleInterop: true,
+    },
+  }).outputText;
+  compiled._compile(output, filename);
+  return compiled.exports;
+}
+
+const domain = loadSource("src/lib/kelishuv-domain.ts");
+const mediation = loadSource("src/lib/mediation.ts");
+const workflow = loadSource("src/lib/ai-workflow.ts");
+const provider = loadSource("src/lib/ai-provider.ts");
+const documents = loadSource("src/lib/agreement-pdf.ts");
+const extraction = loadSource("src/lib/evidence-extraction.ts");
+const negotiation = loadSource("src/lib/negotiation.ts");
+const payme = loadSource("src/lib/payme.ts");
+const identityApi = loadSource("src/lib/identity-api.ts");
+const serviceApi = loadSource("src/lib/service-api.ts");
+const { NextRequest } = require("next/server");
+const { randomUUID, createHmac } = require("node:crypto");
+const users = [
+  { id: "a", role: "CITIZEN", fullName: "First", isActive: true },
+  { id: "b", role: "CITIZEN", fullName: "Second", isActive: true },
+  { id: "m", role: "MEDIATOR", fullName: "Mediator", isActive: true },
+  { id: "admin", role: "ADMIN", isActive: true },
+];
+const record = {
+  id: "case",
+  userId: "a",
+  mediatorId: "mediator",
+  type: "QARZ",
+  description: "Shared contract description",
+  claimAmount: 12,
+  documents: [
+    {
+      id: "private-file",
+      uploadedBy: "a",
+      visibility: "MEDIATOR_ONLY",
+      extraction: { text: "private evidence" },
+    },
+  ],
+  positions: [
+    {
+      userId: "a",
+      sharedStatement: "First shared statement",
+      confidentialStatement: "secret-a",
+      consent: { local: false, external: false },
+    },
+    {
+      userId: "b",
+      sharedStatement: "Second shared statement",
+      confidentialStatement: "secret-b",
+      consent: { local: false, external: false },
+    },
+  ],
+  mediation: {
+    respondentId: "b",
+    initiatorConsent: { userId: "a", phone: "private-phone" },
+    respondentConsent: { userId: "b" },
+  },
+};
+const data = {
+  users,
+  mediators: [{ id: "mediator", userId: "m", verified: true }],
+  cases: [record],
+};
+const participants = ["a", "b", "m"].map((userId, index) => ({
+  userId,
+  role: ["FIRST_PARTY", "SECOND_PARTY", "MEDIATOR"][index],
+  fullName: userId,
+}));
+const terms = {
+  subject: "Test agreement",
+  agreedTerms: "Both parties agree to the written obligations.",
+  totalAmount: 0,
+  currency: "UZS",
+  place: "Toshkent",
+  date: "2026-11-20",
+  paymentSchedule: [],
+  obligations: [
+    {
+      id: "action",
+      title: "Return contract",
+      dueDate: "2026-12-01",
+      assigneeId: "a",
+      beneficiaryId: "b",
+    },
+  ],
+  responsibilities: "Both parties report execution.",
+  conditions: "Mediator checks the terms.",
+  sourceIds: [],
+};
+
+test("shared case and other-party responses omit confidential content", () => {
+  assert.doesNotMatch(
+    JSON.stringify(domain.sharedCaseInput(record)),
+    /secret-a|secret-b|private evidence/,
+  );
+  const visible = mediation.caseForViewer(data, record, users[1]);
+  assert.doesNotMatch(
+    JSON.stringify(visible),
+    /secret-a|private evidence|private-phone/,
+  );
+  const admin = mediation.caseForViewer(data, record, users[3]);
+  assert.doesNotMatch(
+    JSON.stringify(admin),
+    /secret-a|secret-b|private evidence/,
+  );
+});
+
+test("private input fingerprints change when extracted evidence changes", () => {
+  const changed = structuredClone(record);
+  changed.documents[0].extraction.text = "new evidence";
+  assert.notEqual(
+    domain.privateReviewInputHash(record, "a"),
+    domain.privateReviewInputHash(changed, "a"),
+  );
+});
+
+test("zero-total settlements reject positive payment schedules", () => {
+  const invalid = {
+    ...terms,
+    paymentSchedule: [
+      {
+        id: "payment",
+        amount: 1,
+        dueDate: "2026-12-01",
+        payerId: "a",
+        payeeId: "b",
+      },
+    ],
+  };
+  assert.ok(
+    domain
+      .validateAgreementTerms(invalid, "SETTLEMENT", participants)
+      .some(
+        (item) =>
+          item.field === "paymentSchedule" && item.severity === "REQUIRED",
+      ),
+  );
+});
+
+test("four neutral schedules preserve totals including one-som claims", async () => {
+  for (const claimAmount of [0, 1, 2, 7, 1_200_000]) {
+    const review = await workflow.generateSharedReview(
+      { ...domain.sharedCaseInput(record), claimAmount },
+      { localConsent: false, externalConsent: false },
+    );
+    assert.equal(review.proposals.length, 4);
+    for (const proposal of review.proposals) {
+      assert.equal(
+        proposal.schedule.reduce((sum, payment) => sum + payment.amount, 0),
+        claimAmount,
+      );
+      assert.ok(proposal.schedule.every((payment) => payment.amount > 0));
+    }
+  }
+});
+
+test("audit verification detects modified events", () => {
+  const state = { audit: [] };
+  domain.audit(state, "a", "TEST", { caseId: "case" });
+  domain.audit(state, "b", "TEST_2", { caseId: "case" });
+  assert.equal(domain.verifyAudit(state.audit), true);
+  state.audit[0].action = "CHANGED";
+  assert.equal(domain.verifyAudit(state.audit), false);
+});
+
+test("fresh dispatch authorization prevents provider transmission", async () => {
+  const originalFetch = global.fetch;
+  let requests = 0;
+  global.fetch = async () => {
+    requests++;
+    throw new Error("Unexpected transmission");
+  };
+  try {
+    await assert.rejects(
+      provider.runStructuredAI(
+        { type: "object", properties: {}, additionalProperties: false },
+        "test",
+        "synthetic",
+        {
+          localConsent: true,
+          externalConsent: true,
+          beforeDispatch: async () => {
+            throw new Error("consent revoked");
+          },
+        },
+      ),
+      /consent revoked/,
+    );
+    assert.equal(requests, 0);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("PDF render and signature layout work with Cyrillic text", async () => {
+  const version = {
+    id: "version",
+    number: 1,
+    createdAt: "2026-11-20T12:00:00Z",
+    kind: "SETTLEMENT",
+    terms: { ...terms, subject: "Келишув — Ўзбекистон" },
+    participants,
+    boxes: [],
+    contentHash: "0".repeat(64),
+    status: "DRAFT",
+    signatures: [],
+    validation: [],
+    reviews: [],
+  };
+  const files = await documents.renderAgreementFiles({
+    agreementId: "agreement",
+    version,
+  });
+  const pdf = await PDFDocument.load(files.pdf);
+  assert.equal(pdf.getPageCount(), files.pageCount);
+  assert.equal(files.boxes.length, 3);
+  assert.ok(files.docx.length > 500);
+  assert.throws(() =>
+    documents.validateSignatureBoxes(
+      files.boxes.map((box) => ({ ...box, x: 0.1 })),
+      files.pageCount,
+    ),
+  );
+  const blank = createCanvas(900, 360).toBuffer("image/png");
+  await assert.rejects(documents.validateSignaturePng(blank));
+});
+
+test("scanned PDF dimensions are bounded before native canvas allocation", async () => {
+  const originalFetch = global.fetch;
+  const previousProvider = process.env.AI_PROVIDER;
+  process.env.AI_PROVIDER = "OLLAMA";
+  let checked = false;
+  global.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    const image = await loadImage(
+      Buffer.from(body.messages[1].images[0], "base64"),
+    );
+    assert.ok(image.width <= 1600 && image.height <= 1600);
+    assert.ok(image.width * image.height <= 2_000_000);
+    checked = true;
+    return new Response(
+      JSON.stringify({
+        done: true,
+        message: {
+          content: JSON.stringify({
+            text: "",
+            names: [],
+            dates: [],
+            amounts: [],
+            obligations: [],
+            deadlines: [],
+            clauses: [],
+            visibleSignatures: [],
+            warnings: [],
+          }),
+        },
+      }),
+    );
+  };
+  try {
+    const pdf = await PDFDocument.create();
+    const page = pdf.addPage();
+    page.node.set(
+      PDFName.of("MediaBox"),
+      pdf.context.obj([0, 0, 100_000_000, 100_000_000]),
+    );
+    await extraction.extractEvidence(
+      { name: "synthetic-scan.pdf", mime: "application/pdf" },
+      Buffer.from(await pdf.save()),
+      { localConsent: true, externalConsent: false },
+    );
+    assert.equal(checked, true);
+  } finally {
+    global.fetch = originalFetch;
+    if (previousProvider === undefined) delete process.env.AI_PROVIDER;
+    else process.env.AI_PROVIDER = previousProvider;
+  }
+});
+
+test("bounded DOCX archives still extract ordinary documents", async () => {
+  const buffer = await Packer.toBuffer(
+    new Document({
+      sections: [
+        { children: [new Paragraph("Synthetic bounded document text")] },
+      ],
+    }),
+  );
+  const result = await extraction.extractEvidence(
+    {
+      name: "document.docx",
+      mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    },
+    buffer,
+    { localConsent: false, externalConsent: false },
+  );
+  assert.match(result.text, /Synthetic bounded document text/);
+});
+
+test("DOCX size bounds use the ZIP directory and actual decompression", async () => {
+  const zip = new JSZip();
+  const fakeHeader = Buffer.alloc(140_000);
+  fakeHeader.writeUInt32LE(0x02014b50);
+  fakeHeader.writeUInt16LE(65535, 28);
+  fakeHeader.writeUInt16LE(65535, 30);
+  fakeHeader.writeUInt16LE(65535, 32);
+  zip.file("padding", fakeHeader, { compression: "STORE" });
+  zip.file("word/document.xml", Buffer.alloc(31 * 1024 * 1024, 65));
+  const buffer = await zip.generateAsync({
+    type: "nodebuffer",
+    compression: "DEFLATE",
+  });
+  const document = {
+    name: "oversized.docx",
+    mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  };
+  await assert.rejects(
+    extraction.extractEvidence(document, buffer, {
+      localConsent: false,
+      externalConsent: false,
+    }),
+  );
+  const forged = Buffer.from(buffer);
+  // Forge the declared size in the real central directory to exercise streaming bounds.
+  for (let offset = forged.length - 46; offset > 0; offset--) {
+    if (
+      forged.readUInt32LE(offset) === 0x02014b50 &&
+      forged.readUInt32LE(offset + 24) > 30 * 1024 * 1024
+    ) {
+      forged.writeUInt32LE(1, offset + 24);
+      break;
+    }
+  }
+  await assert.rejects(
+    extraction.extractEvidence(document, forged, {
+      localConsent: false,
+      externalConsent: false,
+    }),
+  );
+});
+
+test("encoded image dimensions are checked before native decoding", async () => {
+  const buffer = createCanvas(1, 1).toBuffer("image/png");
+  buffer.writeUInt32BE(100_000, 16);
+  buffer.writeUInt32BE(100_000, 20);
+  buffer.writeUInt32BE(crc32(buffer.subarray(12, 29)), 29);
+  await assert.rejects(
+    extraction.extractEvidence(
+      { name: "large.png", mime: "image/png" },
+      buffer,
+      { localConsent: true, externalConsent: false },
+    ),
+    /Rasm formati yoki o‘lchamini/,
+  );
+});
+
+test("compressed single-page PDF text is capped in an isolated process", async () => {
+  const pdf = await PDFDocument.create();
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  const page = pdf.addPage();
+  page.node.set(PDFName.of("MediaBox"), pdf.context.obj([0, 0, 40_000_000, 800]));
+  page.node.set(
+    PDFName.of("Resources"),
+    pdf.context.obj({ Font: { F1: font.ref } }),
+  );
+  const content = Buffer.from(
+    "BT /F1 12 Tf 10 10 Td (" + "A".repeat(2 * 1024 * 1024) + ") Tj ET",
+  );
+  page.node.set(
+    PDFName.of("Contents"),
+    pdf.context.register(pdf.context.flateStream(content)),
+  );
+  const buffer = Buffer.from(await pdf.save());
+  assert.ok(buffer.length < 20_000);
+  const result = await extraction.extractEvidence(
+    { name: "compressed-text.pdf", mime: "application/pdf" },
+    buffer,
+    { localConsent: false, externalConsent: false },
+  );
+  assert.equal(result.text.length, 18000);
+  assert.ok(result.warnings.some((warning) => warning.includes("18000")));
+});
+
+test("negotiation unlocks exactly one proposal after both parties answer", () => {
+  const sample = structuredClone(record);
+  sample.aiReview = { id: "review", proposals: ["QUICK", "BALANCED", "INSTALLMENTS", "FLEXIBLE"].map(id => ({ id })) };
+  sample.proposalDecisions = [];
+  assert.equal(negotiation.negotiationState(sample).round, 1);
+  for (let index = 0; index < 4; index++) {
+    const proposalId = sample.aiReview.proposals[index].id;
+    sample.proposalDecisions.push({ reviewId: "review", proposalId, userId: "a", decision: "REJECT" });
+    assert.equal(negotiation.negotiationState(sample).index, index);
+    sample.proposalDecisions.push({ reviewId: "review", proposalId, userId: "b", decision: "CHANGES" });
+    assert.equal(negotiation.negotiationState(sample).index, index + 1);
+  }
+  assert.equal(negotiation.negotiationState(sample).exhausted, true);
+  sample.aiReview.id = "changed-review";
+  assert.equal(negotiation.negotiationState(sample).round, 1);
+});
+
+test("mutual proposal acceptance closes the current round", () => {
+  const sample = structuredClone(record);
+  sample.aiReview = { id: "review", proposals: [{ id: "QUICK" }, { id: "BALANCED" }] };
+  sample.proposalDecisions = ["a", "b"].map(userId => ({ userId, reviewId: "review", proposalId: "QUICK", decision: "ACCEPT" }));
+  const state = negotiation.negotiationState(sample);
+  assert.equal(state.agreed, true);
+  assert.equal(state.index, 0);
+});
+
+test("private invitation token is omitted from every case view", () => {
+  const sample = structuredClone(record);
+  sample.mediation.invitationToken = "private-invitation-token";
+  sample.mediation.invitationHash = "private-invitation-hash";
+  sample.mediation.invitationRequestId = "private-invitation-request";
+  for (const user of users) assert.doesNotMatch(JSON.stringify(mediation.caseForViewer(data, sample, user)), /private-invitation/);
+});
+
+function paymentFixture() {
+  const order = { id: randomUUID(), userId: "a", caseId: "case", kind: "TEMPLATE", templateId: "DEMAND", amount: 19000, status: "PENDING" };
+  return { order, data: { serviceOrders: [order], paymentTransactions: [] } };
+}
+
+test("Payme verifies tiyin amount and persists idempotent payment transitions", () => {
+  const fixture = paymentFixture();
+  const params = { id: "provider-transaction", time: Date.now(), amount: 1900000, account: { order_id: fixture.order.id } };
+  assert.throws(() => payme.paymeOperation(fixture.data, "CheckPerformTransaction", { ...params, amount: 19000 }), /summasi/);
+  assert.equal(payme.paymeOperation(fixture.data, "CheckPerformTransaction", params).allow, true);
+  const created = payme.paymeOperation(fixture.data, "CreateTransaction", params);
+  assert.deepEqual(payme.paymeOperation(fixture.data, "CreateTransaction", params), created);
+  assert.throws(() => payme.paymeOperation(fixture.data, "CreateTransaction", { ...params, id: "duplicate" }), /holati/);
+  const performed = payme.paymeOperation(fixture.data, "PerformTransaction", params);
+  assert.equal(fixture.order.status, "PAID");
+  assert.equal(performed.state, 2);
+  assert.deepEqual(payme.paymeOperation(fixture.data, "PerformTransaction", params), performed);
+  assert.equal(fixture.data.paymentTransactions.length, 1);
+  assert.ok(serviceApi.hasTemplatePurchase(fixture.data, "a", "case"));
+  assert.equal(serviceApi.hasTemplatePurchase(fixture.data, "b", "case"), undefined);
+});
+
+test("Payme cancellation revokes access and consumed services require refund review", () => {
+  const fixture = paymentFixture();
+  const params = { id: "provider-transaction", time: Date.now(), amount: 1900000, account: { order_id: fixture.order.id } };
+  payme.paymeOperation(fixture.data, "CreateTransaction", params);
+  payme.paymeOperation(fixture.data, "PerformTransaction", params);
+  fixture.order.consumedAt = new Date().toISOString();
+  assert.throws(() => payme.paymeOperation(fixture.data, "CancelTransaction", { id: params.id, reason: 5 }), /Xizmat/);
+  assert.equal(fixture.order.status, "PAID");
+  delete fixture.order.consumedAt;
+  const cancelled = payme.paymeOperation(fixture.data, "CancelTransaction", { id: params.id, reason: 5 });
+  assert.equal(cancelled.state, -2);
+  assert.equal(fixture.order.status, "CANCELLED");
+  assert.equal(serviceApi.hasTemplatePurchase(fixture.data, "a", "case"), undefined);
+  assert.deepEqual(payme.paymeOperation(fixture.data, "CancelTransaction", { id: params.id, reason: 5 }), cancelled);
+});
+
+test("Payme expires unpaid transactions and prevents payment after timeout", () => {
+  const fixture = paymentFixture();
+  const params = { id: "provider-transaction", time: Date.now(), amount: 1900000, account: { order_id: fixture.order.id } };
+  payme.paymeOperation(fixture.data, "CreateTransaction", params);
+  fixture.data.paymentTransactions[0].providerTime -= 43200001;
+  assert.throws(() => payme.paymeOperation(fixture.data, "PerformTransaction", params), /bekor/);
+  assert.equal(fixture.data.paymentTransactions[0].state, -1);
+  assert.equal(fixture.order.status, "PENDING");
+});
+
+test("identity completion requires a signed callback with matching document digits", async () => {
+  const previous = process.env.IDENTITY_WEBHOOK_SECRET;
+  process.env.IDENTITY_WEBHOOK_SECRET = randomUUID();
+  const check = { id: randomUUID(), userId: "a", sessionId: "session", status: "PENDING", updatedAt: new Date().toISOString(), fields: { firstName: "Ali", lastName: "Valiyev", middleName: "", birthDate: "1990-01-01", address: "Toshkent", documentNumber: "AA1111111" } };
+  const sample = { identityChecks: [check] };
+  async function callback(fields, sign = true) {
+    const body = JSON.stringify({ reference: check.id, sessionId: check.sessionId, status: "VERIFIED", liveness: true, documentVerified: true, fields });
+    const timestamp = String(Date.now());
+    const signature = createHmac("sha256", process.env.IDENTITY_WEBHOOK_SECRET).update(`${timestamp}.${body}`).digest("hex");
+    return identityApi.identityWebhook(new NextRequest("http://localhost:2345/api/webhooks/identity", { method: "POST", headers: { "x-identity-timestamp": timestamp, "x-identity-signature": sign ? signature : "invalid" }, body }), async operation => operation(sample));
+  }
+  try {
+    await assert.rejects(callback(check.fields, false), /imzosi/);
+    assert.equal(check.status, "PENDING");
+    await callback({ ...check.fields, documentNumber: "AA2222222" });
+    assert.equal(check.status, "FAILED");
+    check.status = "PENDING";
+    await callback(check.fields);
+    assert.equal(check.status, "VERIFIED");
+    await callback({ ...check.fields, firstName: "Changed" });
+    assert.equal(check.status, "VERIFIED");
+  } finally { if (previous === undefined) delete process.env.IDENTITY_WEBHOOK_SECRET; else process.env.IDENTITY_WEBHOOK_SECRET = previous; }
+});
+
+test("changing a phone invalidates verification and prevents duplicate phones", () => {
+  const sample = { users: [{ id: "a", phone: "+998901234567", phoneVerifiedAt: "verified" }, { id: "b", phone: "+998 91 123 45 67" }] };
+  mediation.setUserPhone(sample, sample.users[0], "+998 90 123 45 67");
+  assert.equal(sample.users[0].phoneVerifiedAt, "verified");
+  assert.throws(() => mediation.setUserPhone(sample, sample.users[0], "+998911234567"), /boshqa/);
+  mediation.setUserPhone(sample, sample.users[0], "+998931234567");
+  assert.equal(sample.users[0].phoneVerifiedAt, undefined);
+});
+
+test("public assistant returns catalog citations without reading private cases", async () => {
+  const previous = process.env.AI_PROVIDER;
+  process.env.AI_PROVIDER = "RULES";
+  try {
+    const assistant = loadSource("src/lib/assistant.ts");
+    const legal = loadSource("src/lib/legal.ts");
+    const answer = await assistant.answerAssistant("Ish beruvchi ikki oylik ish haqimni to‘lamadi, qaysi qonun menga yordam beradi?", [], false, "uz");
+    assert.ok(answer.sources.length > 0);
+    for (const source of answer.sources) {
+      assert.ok(legal.LEGAL_SOURCES.some(item => item.id === source.id && item.url === source.url && item.summary === source.summary));
+      assert.ok(source.verifiedAt);
+      assert.match(source.url, /^https:\/\/lex\.uz\//);
+    }
+    assert.equal((await assistant.answerAssistant("Sayt qanday ishlaydi?", [], false, "uz")).sources.length, 0);
+    assert.ok((await assistant.answerAssistant("Telefon sotib oldim, nuqsoni bor. Kafolat bo‘yicha qanday huquqlarim bor?", [], false, "uz")).sources.length > 0);
+    assert.match((await assistant.answerAssistant("Platforma narxi qancha?", [], false, "uz")).answer,/19 000/);
+    assert.match((await assistant.answerAssistant("Как работает платформа?", [], false, "ru")).answer,/Нажмите/);
+    assert.match((await assistant.answerAssistant("Сайт қандай ишлайди?", [], false, "uz-Cyrl")).answer,/орқали/);
+    const russian=await assistant.answerAssistant("Работодатель не выплатил зарплату, какие законы применяются?",[],false,'ru');
+    assert.match(russian.answer,/Сопоставьте/);
+    assert.ok(russian.sources.some(source=>source.url.includes('6257288')));
+    assert.ok(russian.sources.every(source=>source.originalLanguage==='uz'));
+    assert.ok((await assistant.answerAssistant('Сайтдан сифатсиз товар сотиб олдим',[],false,'uz-Cyrl')).sources.some(source=>source.url.includes('4704')));
+  } finally { if (previous === undefined) delete process.env.AI_PROVIDER; else process.env.AI_PROVIDER = previous; }
+});
+
+test("Payme distinguishes invalid requests from persistence failures", async () => {
+  const previous = process.env.PAYME_SECRET;
+  process.env.PAYME_SECRET = randomUUID();
+  const headers = { Authorization: `Basic ${Buffer.from(`Paycom:${process.env.PAYME_SECRET}`).toString('base64')}` };
+  try {
+    const invalid = await payme.handlePaymeRequest(new NextRequest('http://localhost:2345/api/payments/payme', { method:'POST', headers, body:'{}' }), async () => { throw new Error('should not mutate'); });
+    assert.equal((await invalid.json()).error.code,-32600);
+    const failed = await payme.handlePaymeRequest(new NextRequest('http://localhost:2345/api/payments/payme', { method:'POST', headers, body:JSON.stringify({id:1,method:'GetStatement',params:{from:0,to:1}}) }), async () => { throw new Error('disk unavailable'); });
+    assert.equal((await failed.json()).error.code,-32400);
+  } finally { if (previous === undefined) delete process.env.PAYME_SECRET; else process.env.PAYME_SECRET = previous; }
+});
+
+function serviceFixture() {
+  const sample = structuredClone(record);
+  sample.type = 'SHARTNOMA';
+  sample.status = 'IN_PROGRESS';
+  sample.analysis = { sources: [] };
+  sample.mediation.initiatorConsent = { userId:'a',textVersion:mediation.CONSENT_VERSION };
+  sample.mediation.respondentConsent = { userId:'b',textVersion:mediation.CONSENT_VERSION };
+  sample.mediation.mediatorApprovals = ['a','b'].map(userId => ({userId,mediatorId:'mediator'}));
+  return { users:structuredClone(users), cases:[sample], mediators:structuredClone(data.mediators), serviceOrders:[], mediatorInvoices:[], sessions:[{id:'session',caseId:'case',type:'ONLINE',status:'SCHEDULED',scheduledAt:new Date(Date.now()+86400000).toISOString(),duration:30}], audit:[] };
+}
+
+test("service orders reject irrelevant kind fields and preserve retry identity", async () => {
+  const sample = serviceFixture();
+  const input = {requestId:randomUUID(),kind:'TEMPLATE',caseId:'case',templateId:'DEMAND'};
+  const request = body => new NextRequest('http://localhost:2345/api/services/orders',{method:'POST',body:JSON.stringify(body)});
+  await assert.rejects(serviceApi.handleServiceRequest(request({...input,invoiceId:randomUUID()}),users[0],async operation=>operation(sample)));
+  const first = await serviceApi.handleServiceRequest(request(input),users[0],async operation=>operation(sample));
+  const second = await serviceApi.handleServiceRequest(request(input),users[0],async operation=>operation(sample));
+  assert.equal((await first.json()).order.id,(await second.json()).order.id);
+  assert.equal(sample.serviceOrders.length,1);
+});
+
+test("mediator invoice and party orders preserve odd-som totals and commission", async () => {
+  const sample = serviceFixture();
+  const invoiceResponse = await serviceApi.handleServiceRequest(new NextRequest('http://localhost:2345/api/cases/case/invoice',{method:'POST',body:JSON.stringify({amount:1001,confirm:true})}),users[2],async operation=>operation(sample));
+  const invoice = (await invoiceResponse.json()).invoice;
+  assert.equal(invoice.parties.reduce((sum,party)=>sum+party.amount,0),1001);
+  assert.equal(invoice.parties.reduce((sum,party)=>sum+party.platformFee,0),150);
+  assert.equal(invoice.mediatorNet,851);
+  sample.agreements = [{caseId:'case',kind:'SETTLEMENT',currentVersionId:'v',versions:[{id:'v',status:'SIGNED'}]}];
+  for (const user of users.slice(0,2)) await serviceApi.handleServiceRequest(new NextRequest('http://localhost:2345/api/services/orders',{method:'POST',body:JSON.stringify({requestId:randomUUID(),kind:'MEDIATOR',caseId:'case',invoiceId:invoice.id})}),user,async operation=>operation(sample));
+  assert.equal(sample.serviceOrders.reduce((sum,order)=>sum+order.amount,0),1001);
+  assert.equal(sample.serviceOrders.reduce((sum,order)=>sum+order.platformFee,0),150);
+  assert.equal(sample.serviceOrders.reduce((sum,order)=>sum+order.mediatorNet,0),851);
+});
+
+test("Zoom clears definite failures and recovers ambiguous results without another meeting", async () => {
+  const keys = ['ZOOM_ACCOUNT_ID','ZOOM_CLIENT_ID','ZOOM_CLIENT_SECRET','ZOOM_HOST_USER_ID'];
+  const previous = keys.map(key=>process.env[key]);
+  const previousFetch = global.fetch;
+  for(const key of keys) process.env[key]=randomUUID();
+  const sample = serviceFixture();
+  const request = () => new NextRequest('http://localhost:2345/api/sessions/session/zoom',{method:'POST'});
+  let creations=0;
+  try {
+    global.fetch=async()=>new Response('{}',{status:401});
+    await assert.rejects(serviceApi.handleServiceRequest(request(),users[2],async operation=>operation(sample)));
+    assert.equal(sample.sessions[0].zoomRequestId,undefined);
+    global.fetch=async url=>{
+      if(String(url).includes('/oauth/token')) return Response.json({access_token:'temporary-test-access'});
+      creations++;throw new Error('connection lost after dispatch');
+    };
+    await assert.rejects(serviceApi.handleServiceRequest(request(),users[2],async operation=>operation(sample)));
+    assert.ok(sample.sessions[0].zoomRequestId);
+    await assert.rejects(serviceApi.handleServiceRequest(request(),users[2],async operation=>operation(sample)),/davom/);
+    sample.sessions[0].zoomRequestedAt=new Date(Date.now()-61000).toISOString();
+    global.fetch=async url=>{
+      if(String(url).includes('/oauth/token')) return Response.json({access_token:'temporary-test-access'});
+      assert.ok(String(url).includes('?type=scheduled'));
+      return Response.json({meetings:[{id:'123456',agenda:sample.sessions[0].zoomRequestId,join_url:'https://zoom.us/j/123456'}],next_page_token:''});
+    };
+    const recovered=await serviceApi.handleServiceRequest(request(),users[2],async operation=>operation(sample));
+    assert.equal((await recovered.json()).zoom.meetingId,'123456');
+    assert.equal(creations,1);
+  } finally { global.fetch=previousFetch; keys.forEach((key,index)=>{if(previous[index]===undefined)delete process.env[key];else process.env[key]=previous[index];}); }
+});
+
+test("a paid template produces DOCX and atomically records its consumed entitlement", async () => {
+  const sample = serviceFixture();
+  const order={id:randomUUID(),userId:'a',caseId:'case',kind:'TEMPLATE',templateId:'DEMAND',status:'PAID',amount:19000};
+  sample.serviceOrders.push(order);
+  const store=loadSource('src/lib/store.ts');
+  const originalRead=store.readStore;
+  store.readStore=async()=>sample;
+  try {
+    const response=await serviceApi.handleServiceRequest(new NextRequest('http://localhost:2345/api/templates/download',{method:'POST',body:JSON.stringify({orderId:order.id,confirmed:true,fields:{recipient:'Test recipient',applicant:'Test applicant',facts:'Synthetic facts for the document.',request:'Please review the supplied documents.',attachments:'Test evidence'}})}),users[0],async operation=>operation(sample));
+    assert.match(response.headers.get('content-type'),/wordprocessingml/);
+    const archive=await JSZip.loadAsync(Buffer.from(await response.arrayBuffer()));
+    assert.match(await archive.file('word/document.xml').async('string'),/Synthetic facts/);
+    assert.ok(order.consumedAt);
+    assert.equal(order.draft.applicant,'Test applicant');
+  } finally {store.readStore=originalRead;}
+});
+
+test("phone normalization preserves digit-containing email credentials", () => {
+  const catalog=loadSource('src/lib/service-catalog.ts');
+  assert.equal(catalog.normalizePhone('user123456789@example.com'),'');
+  assert.equal(catalog.normalizePhone('998901234567@example.com'),'');
+  assert.equal(catalog.normalizePhone('+998 90 123 45 67'),'+998901234567');
+});
+
+test("signed identity callbacks can finish before the provider session response", async () => {
+  const previous=process.env.IDENTITY_WEBHOOK_SECRET;
+  process.env.IDENTITY_WEBHOOK_SECRET=randomUUID();
+  const fields={firstName:'Ali',lastName:'Valiyev',middleName:'',birthDate:'1990-01-01',address:'Test',documentNumber:'TEST123'};
+  const check={id:randomUUID(),userId:'a',status:'PENDING',fields,sessionStartedAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  const body=JSON.stringify({reference:check.id,sessionId:'early-provider-session',status:'VERIFIED',liveness:true,documentVerified:true,fields});
+  const timestamp=String(Date.now());
+  const signature=createHmac('sha256',process.env.IDENTITY_WEBHOOK_SECRET).update(`${timestamp}.${body}`).digest('hex');
+  try {
+    await identityApi.identityWebhook(new NextRequest('http://localhost:2345/api/webhooks/identity',{method:'POST',headers:{'x-identity-timestamp':timestamp,'x-identity-signature':signature},body}),async operation=>operation({identityChecks:[check],users:[]}));
+    assert.equal(check.status,'VERIFIED');assert.equal(check.sessionId,'early-provider-session');
+  } finally {if(previous===undefined)delete process.env.IDENTITY_WEBHOOK_SECRET;else process.env.IDENTITY_WEBHOOK_SECRET=previous;}
+});
+
+test("expired pending identity sessions release fields and rotate their reference", async () => {
+  const fields={firstName:'Ali',lastName:'Valiyev',middleName:'',birthDate:'1990-01-01',address:'Test',documentNumber:'TEST123'};
+  const check={id:randomUUID(),userId:'a',status:'PENDING',fields,sessionId:'old-session',sessionStartedAt:new Date(Date.now()-1800001).toISOString(),updatedAt:new Date().toISOString()};
+  const previousId=check.id;
+  await identityApi.handleIdentityRequest(new NextRequest('http://localhost:2345/api/identity/fields',{method:'PUT',body:JSON.stringify({...fields,firstName:'Updated'})}),users[0],async operation=>operation({identityChecks:[check]}));
+  assert.equal(check.status,'REVIEW_REQUIRED');assert.notEqual(check.id,previousId);assert.equal(check.sessionId,undefined);assert.equal(check.fields.firstName,'Updated');
+});
+
+test("legacy mediator queue cases retain their next-step guidance", () => {
+  const sample=serviceFixture().cases[0];
+  sample.mediatorId=undefined;
+  sample.status='OPEN_FOR_MEDIATORS';
+  const journey=loadSource('src/lib/case-journey.ts');
+  assert.match(journey.caseNextStep(sample,'a').href,/section=positions/);
+  sample.journeyVersion=3;
+  assert.match(journey.caseNextStep(sample,'a').href,/section=analysis/);
+});
+
+test("replacing an SMS invitation clears its delivery status on email retries", async () => {
+  const previousToken=process.env.ESKIZ_TOKEN;
+  delete process.env.ESKIZ_TOKEN;
+  const sample=serviceFixture();
+  const first={...users[0],email:'first@example.test',phone:'+998901234567'};
+  sample.users[0]=first;
+  const record=sample.cases[0];
+  record.mediatorId=undefined;record.mediation.respondentId=undefined;record.history=[];record.region='Toshkent shahri';record.city='Toshkent';
+  const store=loadSource('src/lib/store.ts');const originalRead=store.readStore;store.readStore=async()=>sample;
+  const mediationApi=loadSource('src/lib/mediation-api.ts');
+  const request=body=>new NextRequest('http://localhost:2345/api/cases/case/invitation',{method:'POST',body:JSON.stringify(body)});
+  try {
+    const phone=await mediationApi.handleMediationRequest(request({requestId:randomUUID(),phone:'+998931234567',name:'Second',city:'Toshkent'}),first,async operation=>operation(sample));
+    assert.equal((await phone.json()).smsStatus,'UNCONFIGURED');
+    const input={requestId:randomUUID(),email:'second@example.test',name:'Second',city:'Toshkent'};
+    const email=await mediationApi.handleMediationRequest(request(input),first,async operation=>operation(sample));
+    const replay=await mediationApi.handleMediationRequest(request(input),first,async operation=>operation(sample));
+    assert.equal((await email.json()).smsStatus,null);assert.equal((await replay.json()).smsStatus,null);
+  } finally {store.readStore=originalRead;if(previousToken===undefined)delete process.env.ESKIZ_TOKEN;else process.env.ESKIZ_TOKEN=previousToken;}
+});
+
+test("application origins use configured or local URLs and ignore arbitrary Origin headers", () => {
+  const providers=loadSource('src/lib/service-providers.ts');
+  const keys=['APP_PUBLIC_URL','AUTH_URL'];const previous=keys.map(key=>process.env[key]);keys.forEach(key=>delete process.env[key]);
+  try {
+    assert.throws(()=>providers.applicationOrigin(new NextRequest('https://platform.example/api/identity/session',{headers:{Origin:'https://attacker.example'}})),/HTTPS/);
+    assert.equal(providers.applicationOrigin(new NextRequest('http://localhost:2345/api/identity/session',{headers:{Origin:'https://attacker.example'}})),'http://localhost:2345');
+    process.env.APP_PUBLIC_URL='https://platform.example';
+    assert.equal(providers.applicationOrigin(new NextRequest('https://attacker.example/api/identity/session')),'https://platform.example');
+  } finally {keys.forEach((key,index)=>{if(previous[index]===undefined)delete process.env[key];else process.env[key]=previous[index];});}
+});
+
+test("a stale identity document read returns a retryable conflict", async () => {
+  const store=loadSource('src/lib/store.ts'),files=loadSource('src/lib/documents.ts');
+  const originalRead=store.readStore,originalLoad=files.loadDocument;
+  store.readStore=async()=>({identityChecks:[{id:randomUUID(),userId:'a',status:'REVIEW_REQUIRED',document:{storageKey:randomUUID(),mime:'image/png'}}]});
+  files.loadDocument=async()=>{throw new Error('document replaced');};
+  try {await assert.rejects(identityApi.handleIdentityRequest(new NextRequest('http://localhost:2345/api/identity/extract',{method:'POST',body:JSON.stringify({localConsent:true,externalConsent:false})}),users[0],async()=>{throw new Error('should not mutate');}),error=>error.status===409);}
+  finally {store.readStore=originalRead;files.loadDocument=originalLoad;}
+});
+
+test("Zoom fences expired attempts before dispatch and rejects stale session settings", async () => {
+  const keys=['ZOOM_ACCOUNT_ID','ZOOM_CLIENT_ID','ZOOM_CLIENT_SECRET','ZOOM_HOST_USER_ID'];const previous=keys.map(key=>process.env[key]);keys.forEach(key=>process.env[key]=randomUUID());
+  const originalFetch=global.fetch;let creations=0;const sample=serviceFixture();
+  const request=()=>new NextRequest('http://localhost:2345/api/sessions/session/zoom',{method:'POST'});
+  try {
+    global.fetch=async url=>{
+      if(String(url).includes('/oauth/token')) {sample.sessions[0].zoomAttemptId=randomUUID();return Response.json({access_token:'temporary-test-access'});}
+      creations++;throw new Error('unexpected meeting creation');
+    };
+    await assert.rejects(serviceApi.handleServiceRequest(request(),users[2],async operation=>operation(sample)),/yangilangan/);
+    assert.equal(creations,0);
+    sample.sessions[0].zoomRequestId=undefined;
+    global.fetch=async url=>{
+      if(String(url).includes('/oauth/token')) return Response.json({access_token:'temporary-test-access'});
+      creations++;sample.sessions[0].duration=40;return Response.json({id:123,join_url:'https://zoom.us/j/123'});
+    };
+    await assert.rejects(serviceApi.handleServiceRequest(request(),users[2],async operation=>operation(sample)),/o‘zgargan/);
+    assert.equal(sample.sessions[0].zoom,undefined);
+  } finally {global.fetch=originalFetch;keys.forEach((key,index)=>{if(previous[index]===undefined)delete process.env[key];else process.env[key]=previous[index];});}
+});
+
+test("interrupted SMS dispatch retries the same invitation with a single active claim", async () => {
+  const keys=['ESKIZ_TOKEN','ESKIZ_SENDER'];const previous=keys.map(key=>process.env[key]);delete process.env.ESKIZ_TOKEN;
+  const sample=serviceFixture();const first={...users[0],email:'first@example.test',phone:'+998901234567'};sample.users[0]=first;
+  const record=sample.cases[0];record.mediatorId=undefined;record.mediation.respondentId=undefined;record.history=[];record.region='Toshkent shahri';record.city='Toshkent';
+  const store=loadSource('src/lib/store.ts'),providers=loadSource('src/lib/service-providers.ts'),mediationApi=loadSource('src/lib/mediation-api.ts');
+  const originalRead=store.readStore,originalSend=providers.sendSms;store.readStore=async()=>sample;
+  const input={requestId:randomUUID(),phone:'+998931234567',name:'Second',city:'Toshkent'};
+  const request=()=>new NextRequest('http://localhost:2345/api/cases/case/invitation',{method:'POST',body:JSON.stringify(input)});
+  let sent=0;providers.sendSms=async()=>{sent++;return randomUUID();};
+  try {
+    const original=await mediationApi.handleMediationRequest(request(),first,async operation=>operation(sample));const url=(await original.json()).invitationUrl;
+    process.env.ESKIZ_TOKEN=randomUUID();process.env.ESKIZ_SENDER='4546';
+    const delivery=sample.smsDeliveries[0];delivery.status='SENDING';delivery.attemptStartedAt=new Date(Date.now()-61000).toISOString();
+    const responses=await Promise.all([mediationApi.handleMediationRequest(request(),first,async operation=>operation(sample)),mediationApi.handleMediationRequest(request(),first,async operation=>operation(sample))]);
+    assert.equal(sent,1);assert.equal(delivery.status,'ACCEPTED');
+    for(const response of responses)assert.equal((await response.json()).invitationUrl,url);
+  } finally {store.readStore=originalRead;providers.sendSms=originalSend;keys.forEach((key,index)=>{if(previous[index]===undefined)delete process.env[key];else process.env[key]=previous[index];});}
+});
+
+test("paid service totals include commissions and omit cancelled orders", () => {
+  const sample={serviceOrders:[{status:'PAID',kind:'TEMPLATE',amount:19000,platformFee:19000,mediatorNet:0},{status:'PAID',kind:'MEDIATOR',mediatorId:'m',amount:1001,platformFee:150,mediatorNet:851},{status:'CANCELLED',kind:'MEDIATOR',mediatorId:'m',amount:1001,platformFee:150,mediatorNet:851}]};
+  assert.deepEqual(serviceApi.paidServiceTotals(sample),{gross:20001,platformFee:19150,mediatorNet:851});
+  assert.deepEqual(serviceApi.paidServiceTotals(sample,'m'),{gross:1001,platformFee:150,mediatorNet:851});
+});
+
+test("Zoom recovery reads a matching meeting when the list omits its join URL", async () => {
+  const providers=loadSource('src/lib/service-providers.ts');
+  const originalFetch=global.fetch;let details=0;
+  const keys=['ZOOM_ACCOUNT_ID','ZOOM_CLIENT_ID','ZOOM_CLIENT_SECRET','ZOOM_HOST_USER_ID'];const previous=keys.map(key=>process.env[key]);keys.forEach(key=>process.env[key]=randomUUID());
+  const date=new Date(Date.now()+86400000).toISOString();
+  global.fetch=async url=>{
+    if(String(url).includes('/oauth/token'))return Response.json({access_token:'temporary-test-access'});
+    if(String(url).includes('?type=scheduled'))return Response.json({meetings:[{id:'123',agenda:'reference',start_time:date}],next_page_token:''});
+    details++;return Response.json({id:'123',agenda:'reference',start_time:date,duration:30,join_url:'https://zoom.us/j/123'});
+  };
+  try {assert.equal((await providers.findZoomMeeting('reference',date,30)).meetingId,'123');assert.equal(details,1);}
+  finally{global.fetch=originalFetch;keys.forEach((key,index)=>{if(previous[index]===undefined)delete process.env[key];else process.env[key]=previous[index];});}
+});
+
+test("pending passport cleanup retains failures and clears successful removals privately", async () => {
+  const store=loadSource('src/lib/store.ts'),files=loadSource('src/lib/documents.ts');
+  const previousRead=store.readStore,previousRemove=files.removeDocument;
+  const check={id:randomUUID(),userId:'a',status:'DRAFT',fields:{},pendingDocuments:[{storageKey:randomUUID(),removeAfter:new Date(Date.now()-1000).toISOString()}]};
+  const sample={users:[{id:'a',phone:''}],identityChecks:[check]};
+  store.readStore=async()=>sample;files.removeDocument=async()=>{throw new Error('storage offline');};
+  const request=()=>new NextRequest('http://localhost:2345/api/identity');
+  try{
+    const failed=await identityApi.handleIdentityRequest(request(),users[0],async operation=>operation(sample));
+    assert.equal(check.pendingDocuments.length,1);assert.doesNotMatch(JSON.stringify(await failed.json()),/storageKey|pendingDocuments/);
+    files.removeDocument=async()=>{};
+    await identityApi.handleIdentityRequest(request(),users[0],async operation=>operation(sample));
+    assert.equal(check.pendingDocuments.length,0);
+  }finally{store.readStore=previousRead;files.removeDocument=previousRemove;}
+});
+
+test("private message retries resolve the party recipient on the server", async () => {
+  const api=loadSource('src/lib/kelishuv-api.ts');
+  const sample=serviceFixture();
+  const input={requestId:randomUUID(),visibility:'PRIVATE',body:'Test private note'};
+  const request=()=>new NextRequest('http://localhost:2345/api/cases/case/messages',{method:'POST',body:JSON.stringify(input)});
+  const first=await api.handleKelishuvRequest(request(),users[0],async operation=>operation(sample));
+  const second=await api.handleKelishuvRequest(request(),users[0],async operation=>operation(sample));
+  const message=(await first.json()).message;
+  assert.equal(message.recipientId,'m');assert.equal(message.id,(await second.json()).message.id);assert.equal(sample.cases[0].messages.length,1);
+});
+
+test("SMS invitation replacement waits for active dispatch and throttling preserves attempts", async () => {
+  const keys=['ESKIZ_TOKEN','ESKIZ_SENDER'];const previous=keys.map(key=>process.env[key]);delete process.env.ESKIZ_TOKEN;
+  const sample=serviceFixture();const first={...users[0],email:'first@example.test',phone:'+998901234567'};sample.users[0]=first;
+  const record=sample.cases[0];record.mediatorId=undefined;record.mediation.respondentId=undefined;record.history=[];record.region='Toshkent shahri';record.city='Toshkent';
+  const store=loadSource('src/lib/store.ts'),limiter=loadSource('src/lib/rate-limit.ts'),api=loadSource('src/lib/mediation-api.ts');
+  const originalRead=store.readStore,originalLimit=limiter.withinRateLimit;store.readStore=async()=>sample;
+  const input={requestId:randomUUID(),phone:'+998931234567',name:'Second',city:'Toshkent'};
+  const request=body=>new NextRequest('http://localhost:2345/api/cases/case/invitation',{method:'POST',body:JSON.stringify(body)});
+  try {
+    await api.handleMediationRequest(request(input),first,async operation=>operation(sample));
+    const delivery=sample.smsDeliveries[0];delivery.status='SENDING';delivery.attemptStartedAt=new Date().toISOString();
+    await assert.rejects(api.handleMediationRequest(request({...input,requestId:randomUUID()}),first,async operation=>operation(sample)),/yuborilmoqda/);
+    delivery.status='FAILED';delivery.attemptStartedAt=undefined;
+    process.env.ESKIZ_TOKEN=randomUUID();process.env.ESKIZ_SENDER='4546';limiter.withinRateLimit=async()=>false;
+    await api.handleMediationRequest(request(input),first,async operation=>operation(sample));
+    assert.equal(delivery.attempts,undefined);assert.equal(delivery.status,'FAILED');
+  }finally{store.readStore=originalRead;limiter.withinRateLimit=originalLimit;keys.forEach((key,index)=>{if(previous[index]===undefined)delete process.env[key];else process.env[key]=previous[index];});}
+});
+
+test("identity upload publishes its reserved file and rejects concurrent expired cleanup", async () => {
+  const store=loadSource('src/lib/store.ts'),files=loadSource('src/lib/documents.ts');
+  const originalRead=store.readStore,originalSave=files.saveDocument,originalRemove=files.removeDocument;
+  const sample={users:[{id:'a',phone:''}],identityChecks:[]};
+  store.readStore=async()=>sample;files.removeDocument=async()=>{};
+  const canvas=createCanvas(100,100);canvas.getContext('2d').fillRect(0,0,100,100);
+  function request(){const form=new FormData();form.append('consent','true');form.append('file',new File([new Uint8Array(canvas.toBuffer('image/png'))],'synthetic.png',{type:'image/png'}));return new NextRequest('http://localhost:2345/api/identity/document',{method:'POST',body:form});}
+  let cleanup,releaseRemoval;
+  try {
+    files.saveDocument=async key=>{assert.ok(sample.identityChecks[0].pendingDocuments.some(item=>item.storageKey===key));};
+    const uploaded=await identityApi.handleIdentityRequest(request(),users[0],async operation=>operation(sample));
+    assert.equal((await uploaded.json()).uploaded,true);assert.ok(sample.identityChecks[0].document);assert.equal(sample.identityChecks[0].pendingDocuments.length,0);
+    const previousKey=sample.identityChecks[0].document.storageKey;
+    files.saveDocument=async key=>{
+      const entry=sample.identityChecks[0].pendingDocuments.find(item=>item.storageKey===key);entry.removeAfter=new Date(Date.now()-1000).toISOString();
+      let removalStarted;
+      const started=new Promise(resolve=>{removalStarted=resolve;});
+      files.removeDocument=async()=>{removalStarted();await new Promise(resolve=>{releaseRemoval=resolve;});};
+      cleanup=identityApi.handleIdentityRequest(new NextRequest('http://localhost:2345/api/identity'),users[0],async operation=>operation(sample));
+      await started;
+    };
+    await assert.rejects(identityApi.handleIdentityRequest(request(),users[0],async operation=>operation(sample)),error=>error.status===409);
+    assert.equal(sample.identityChecks[0].document.storageKey,previousKey);
+    releaseRemoval();await cleanup;
+    assert.equal(sample.identityChecks[0].pendingDocuments.length,1);
+    files.removeDocument=async()=>{};
+    await identityApi.handleIdentityRequest(new NextRequest('http://localhost:2345/api/identity'),users[0],async operation=>operation(sample));
+    assert.equal(sample.identityChecks[0].pendingDocuments.length,0);
+  } finally {store.readStore=originalRead;files.saveDocument=originalSave;files.removeDocument=originalRemove;}
+});
+
+test("SMS provider dispatch coalesces concurrent attempts with the same delivery identifier", async () => {
+  const provider=loadSource('src/lib/service-providers.ts');const originalFetch=global.fetch;
+  const keys=['ESKIZ_TOKEN','ESKIZ_SENDER'];const previous=keys.map(key=>process.env[key]);process.env.ESKIZ_TOKEN=randomUUID();process.env.ESKIZ_SENDER='4546';let calls=0,release;
+  const pending=new Promise(resolve=>{release=resolve;});
+  global.fetch=async()=>{calls++;await pending;return Response.json({id:'provider-reference'});};
+  try {const id=randomUUID();const a=provider.sendSms('+998931234567','Synthetic message',id);const b=provider.sendSms('+998931234567','Synthetic message',id);release();assert.deepEqual(await Promise.all([a,b]),['provider-reference','provider-reference']);assert.equal(calls,1);}
+  finally {global.fetch=originalFetch;keys.forEach((key,index)=>{if(previous[index]===undefined)delete process.env[key];else process.env[key]=previous[index];});}
+});
+
+test("ambiguous identity session responses remain pending for signed reconciliation", async () => {
+  const provider=loadSource('src/lib/service-providers.ts');const originalStart=provider.startIdentitySession;
+  const keys=['IDENTITY_API_URL','IDENTITY_API_KEY','IDENTITY_WEBHOOK_SECRET','IDENTITY_REDIRECT_HOSTS'];const previous=keys.map(key=>process.env[key]);
+  process.env.IDENTITY_API_URL='https://identity.example';process.env.IDENTITY_API_KEY=randomUUID();process.env.IDENTITY_WEBHOOK_SECRET=randomUUID();process.env.IDENTITY_REDIRECT_HOSTS='identity.example';
+  const check={id:randomUUID(),userId:'a',status:'REVIEW_REQUIRED',fields:{firstName:'Ali',lastName:'Valiyev',middleName:'',birthDate:'1990-01-01',address:'Test',documentNumber:'TEST123'},document:{storageKey:randomUUID(),mime:'image/png'},updatedAt:new Date().toISOString()};
+  const sample={identityChecks:[check],users:[{id:'a',phoneVerifiedAt:new Date().toISOString()}]};
+  const request=()=>new NextRequest('http://localhost:2345/api/identity/session',{method:'POST',body:JSON.stringify({consent:true})});
+  try {
+    provider.startIdentitySession=async()=>{throw new provider.IdentitySessionError(true);};
+    await assert.rejects(identityApi.handleIdentityRequest(request(),users[0],async operation=>operation(sample)));
+    assert.equal(check.status,'PENDING');
+    const body=JSON.stringify({reference:check.id,sessionId:'reconciled-session',status:'VERIFIED',liveness:true,documentVerified:true,fields:check.fields});const timestamp=String(Date.now());const signature=createHmac('sha256',process.env.IDENTITY_WEBHOOK_SECRET).update(`${timestamp}.${body}`).digest('hex');
+    await identityApi.identityWebhook(new NextRequest('http://localhost:2345/api/webhooks/identity',{method:'POST',headers:{'x-identity-timestamp':timestamp,'x-identity-signature':signature},body}),async operation=>operation(sample));
+    assert.equal(check.status,'VERIFIED');
+    check.status='REVIEW_REQUIRED';provider.startIdentitySession=async()=>{throw new provider.IdentitySessionError(false);};
+    await assert.rejects(identityApi.handleIdentityRequest(request(),users[0],async operation=>operation(sample)));
+    assert.equal(check.status,'FAILED');
+    provider.startIdentitySession=async()=>({id:'resume-session',url:'https://identity.example/resume'});
+    const created=await identityApi.handleIdentityRequest(request(),users[0],async operation=>operation(sample));
+    const resumed=await identityApi.handleIdentityRequest(request(),users[0],async operation=>operation(sample));
+    assert.equal((await created.json()).url,(await resumed.json()).url);
+  } finally {provider.startIdentitySession=originalStart;keys.forEach((key,index)=>{if(previous[index]===undefined)delete process.env[key];else process.env[key]=previous[index];});}
+});
+
+test("legacy proposals retain existing response behavior while new journeys enforce rounds", async () => {
+  const api=loadSource('src/lib/kelishuv-api.ts'),sample=serviceFixture();const record=sample.cases[0];
+  record.aiReview={id:randomUUID(),inputHash:domain.reviewInputHash(record),proposals:[{id:'QUICK'},{id:'BALANCED'}]};
+  const request=()=>new NextRequest('http://localhost:2345/api/cases/case/proposals/BALANCED/respond',{method:'POST',body:JSON.stringify({reviewId:record.aiReview.id,decision:'REJECT',note:''})});
+  record.journeyVersion=3;
+  delete record.mediation.respondentConsent;
+  await assert.rejects(api.handleKelishuvRequest(request(),users[0],async operation=>operation(sample)),/ikkala taraf roziligi/);
+  record.mediation.respondentConsent={userId:'b',textVersion:mediation.CONSENT_VERSION};
+  await assert.rejects(api.handleKelishuvRequest(request(),users[0],async operation=>operation(sample)),/Joriy taklif/);
+  delete record.journeyVersion;
+  const response=await api.handleKelishuvRequest(request(),users[0],async operation=>operation(sample));assert.equal((await response.json()).decision.proposalId,'BALANCED');
+});
+
+test("Cyrillic contract descriptions avoid matching land substrings inside words", () => {
+  const legal=loadSource('src/lib/legal.ts');
+  assert.equal(legal.classify('Не исполнен договор на компьютер '),'SHARTNOMA');
+  assert.equal(legal.classify('Ер ҳуқуқи бўйича низо'),'YER_MULK');
+});

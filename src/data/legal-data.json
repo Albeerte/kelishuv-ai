@@ -1,0 +1,157 @@
+{
+  "sources": [
+    {
+      "id": "mediation",
+      "title": "Mediatsiya to‘g‘risida",
+      "lawNumber": "O‘RQ-482",
+      "article": "3, 5 va 7-moddalar",
+      "summary": "Fuqarolik, mehnat va oilaviy munosabatlardan kelib chiqqan nizolarda tomonlarning ixtiyoriy roziligi bilan mediatsiya qo‘llaniladi. Jarayonda maxfiylik va xolislik prinsiplari amal qiladi.",
+      "url": "https://lex.uz/docs/-3805227",
+      "types": [
+        "MEHNAT",
+        "SHARTNOMA",
+        "QOSHNI",
+        "OILA",
+        "ISTE_MOLCHI",
+        "BIZNES",
+        "YER_MULK",
+        "BOSHQA"
+      ],
+      "verifiedAt": "2026-11-20",
+      "keywords": ["mediatsiya", "mediator", "kelishuv", "maxfiylik"]
+    },
+    {
+      "id": "labor",
+      "title": "O‘zbekiston Respublikasining Mehnat kodeksi",
+      "lawNumber": "O‘RQ-798",
+      "article": "253-modda",
+      "summary": "Ish haqi to‘lash muddatlari shartnoma yoki ichki hujjatlarda belgilanadi. Umumiy qoida bo‘yicha ish haqi har yarim oyda kamida bir marta to‘lanadi.",
+      "url": "https://lex.uz/docs/-6257288",
+      "types": ["MEHNAT"],
+      "verifiedAt": "2026-11-20",
+      "keywords": [
+        "mehnat",
+        "ish",
+        "haqi",
+        "maosh",
+        "ishdan",
+        "ta’til",
+        "xodim"
+      ]
+    },
+    {
+      "id": "civil",
+      "title": "Fuqarolik kodeksi",
+      "lawNumber": "163-I",
+      "article": "Majburiyatlar va shartnomalar",
+      "summary": "Shartnomaviy majburiyatlar, mulkiy munosabatlar va fuqarolik huquqlarini himoya qilish bo‘yicha asosiy qoidalar. Vaziyatga tegishli modda hujjatlar asosida aniqlanadi.",
+      "url": "https://lex.uz/docs/-111189",
+      "types": ["SHARTNOMA", "QOSHNI", "BIZNES", "YER_MULK"],
+      "verifiedAt": "2026-11-20",
+      "keywords": ["shartnoma", "qarz", "to‘lov", "mulk", "qo‘shni", "biznes"]
+    },
+    {
+      "id": "family",
+      "title": "O‘zbekiston Respublikasining Oila kodeksi",
+      "lawNumber": "607-I",
+      "article": "Oilaviy munosabatlar",
+      "summary": "Er-xotin, ota-ona va farzandlarning huquq hamda majburiyatlari, aliment va oila mulki bilan bog‘liq munosabatlarni tartibga soladi.",
+      "url": "https://lex.uz/docs/-104720",
+      "types": ["OILA"],
+      "verifiedAt": "2026-11-20",
+      "keywords": ["oila", "nikoh", "bola", "aliment", "ajrashish", "farzand"]
+    },
+    {
+      "id": "consumer",
+      "title": "Iste’molchilarning huquqlarini himoya qilish to‘g‘risida",
+      "lawNumber": "221-I",
+      "article": "Tovar va xizmatlar sifati",
+      "summary": "Tovar yoki xizmatning sifati, kafolat va iste’molchining talablarini ko‘rib chiqish bo‘yicha qoidalar. Xarid cheki va boshqa dalillarni saqlang.",
+      "url": "https://lex.uz/docs/-4704",
+      "types": ["ISTE_MOLCHI"],
+      "verifiedAt": "2026-11-20",
+      "keywords": [
+        "tovar",
+        "iste’molchi",
+        "kafolat",
+        "sifatsiz",
+        "xarid",
+        "chek"
+      ]
+    },
+    {
+      "id": "land",
+      "title": "O‘zbekiston Respublikasining Yer kodeksi",
+      "lawNumber": "598-I",
+      "article": "Yerga oid huquqlar",
+      "summary": "Yer uchastkalariga bo‘lgan huquqlar, ulardan foydalanish va yer bilan bog‘liq nizolarni ko‘rib chiqish qoidalarini belgilaydi.",
+      "url": "https://lex.uz/docs/-152653",
+      "types": ["YER_MULK"],
+      "verifiedAt": "2026-11-20",
+      "keywords": ["yer", "kadastr", "uchastka", "chegara"]
+    },
+    {
+      "id": "court-fee",
+      "title": "Davlat boji to‘g‘risida",
+      "lawNumber": "O‘RQ-600",
+      "article": "Ilova va 8-modda",
+      "summary": "Mulkiy da’volarda fuqarolik sudlari uchun umumiy stavka da’vo qiymatining 4 foizi, kamida 1 BHM. Imtiyozlar va talab turi yakuniy hisobga ta’sir qiladi.",
+      "url": "https://lex.uz/docs/-4680944",
+      "types": [
+        "MEHNAT",
+        "SHARTNOMA",
+        "QOSHNI",
+        "OILA",
+        "ISTE_MOLCHI",
+        "BIZNES",
+        "YER_MULK",
+        "BOSHQA"
+      ],
+      "verifiedAt": "2026-11-20",
+      "keywords": ["sud", "boj", "xarajat", "da’vo", "imtiyoz"]
+    }
+  ],
+  "documents": {
+    "MEHNAT": [
+      "Mehnat shartnomasi",
+      "Ish haqi to‘lov hujjati",
+      "Ish beruvchi bilan yozishmalar",
+      "Bank hisobidan ko‘chirma"
+    ],
+    "SHARTNOMA": [
+      "Shartnoma nusxasi",
+      "To‘lov cheki yoki kvitansiya",
+      "Tomonlar o‘rtasidagi yozishmalar"
+    ],
+    "QOSHNI": [
+      "Mulkka oid hujjat",
+      "Holatni tasdiqlovchi foto yoki dalolatnoma",
+      "Qo‘shni bilan yozishmalar"
+    ],
+    "OILA": [
+      "Nikoh guvohnomasi",
+      "Farzandlarning tug‘ilganlik guvohnomalari",
+      "Mol-mulkka oid hujjatlar"
+    ],
+    "ISTE_MOLCHI": [
+      "Xarid cheki",
+      "Kafolat taloni yoki shartnoma",
+      "Nuqsonning foto yoki video dalili"
+    ],
+    "BIZNES": [
+      "Hamkorlik shartnomasi",
+      "Hisob-faktura va bank hujjatlari",
+      "Tomonlar o‘rtasidagi yozishmalar"
+    ],
+    "YER_MULK": [
+      "Kadastr pasporti",
+      "Mulk huquqi hujjati",
+      "Yer uchastkasi rejasi"
+    ],
+    "BOSHQA": [
+      "Shaxsni tasdiqlovchi hujjat",
+      "Vaziyatga oid shartnomalar",
+      "Muammoni tasdiqlovchi dalillar"
+    ]
+  }
+}

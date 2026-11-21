@@ -1,0 +1,100 @@
+export type IdentityFields = {
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  birthDate: string;
+  address: string;
+  documentNumber: string;
+};
+export type IdentityCheck = {
+  id: string;
+  userId: string;
+  status: "DRAFT" | "REVIEW_REQUIRED" | "PENDING" | "VERIFIED" | "FAILED";
+  fields: IdentityFields;
+  document?: { storageKey: string; mime: string; uploadedAt: string };
+  extractedFields?: IdentityFields;
+  extractionMessage?: string;
+  nameMatches?: boolean;
+  sessionId?: string;
+  sessionUrl?: string;
+  sessionStartedAt?: string;
+  verifiedAt?: string;
+  updatedAt: string;
+  pendingDocuments?: {
+    storageKey: string;
+    removeAfter: string;
+    cleanupId?: string;
+  }[];
+  documentConsentAt?: string;
+  providerConsentAt?: string;
+  extractionConsent?: { local: boolean; external: boolean; at: string };
+};
+export type PhoneChallenge = {
+  id: string;
+  userId: string;
+  phone: string;
+  codeHash: string;
+  expiresAt: string;
+  createdAt: string;
+  attempts: number;
+  accepted: boolean;
+};
+export type SmsDelivery = {
+  id: string;
+  caseId: string;
+  userId: string;
+  status: "UNCONFIGURED" | "SENDING" | "ACCEPTED" | "FAILED" | "UNKNOWN";
+  providerId?: string;
+  attempts?: number;
+  attemptId?: string;
+  attemptStartedAt?: string;
+  createdAt: string;
+};
+export type TemplateId = "DEMAND" | "MEDIATION" | "COURT";
+export type DocumentDraft = {
+  recipient: string;
+  applicant: string;
+  facts: string;
+  request: string;
+  attachments: string;
+};
+export type ServiceOrder = {
+  id: string;
+  userId: string;
+  requestId: string;
+  kind: "TEMPLATE" | "MEDIATOR";
+  templateId?: TemplateId;
+  caseId: string;
+  invoiceId?: string;
+  mediatorId?: string;
+  title: string;
+  amount: number;
+  platformFee: number;
+  mediatorNet: number;
+  status: "PENDING" | "PAID" | "CANCELLED";
+  createdAt: string;
+  paidAt?: string;
+  consumedAt?: string;
+  draft?: DocumentDraft;
+};
+export type PaymentTransaction = {
+  id: string;
+  orderId: string;
+  providerTime: number;
+  createTime: number;
+  performTime: number;
+  cancelTime: number;
+  state: 1 | 2 | -1 | -2;
+  reason: number | null;
+};
+export type MediatorInvoice = {
+  id: string;
+  caseId: string;
+  mediatorId: string;
+  createdBy: string;
+  gross: number;
+  platformFee: number;
+  mediatorNet: number;
+  parties: { userId: string; amount: number; platformFee: number }[];
+  createdAt: string;
+};
