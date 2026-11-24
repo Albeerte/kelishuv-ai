@@ -58,6 +58,31 @@ const identityApi = loadSource("src/lib/identity-api.ts");
 const serviceApi = loadSource("src/lib/service-api.ts");
 const { NextRequest } = require("next/server");
 const { randomUUID, createHmac } = require("node:crypto");
+const caseEntry = loadSource("src/lib/case-entry.ts");
+
+test("second-party entry opens a local invitation from a copied link or code", () => {
+  const token = "ab".repeat(32);
+  assert.equal(caseEntry.invitationPath(` https://example.test/invite/${token}?from=sms `), `/invite/${token}`);
+  assert.equal(caseEntry.invitationPath(`/invite/${token}/`), `/invite/${token}`);
+  assert.equal(caseEntry.invitationPath(token.toUpperCase()), `/invite/${token}`);
+  for (const value of ["", "https://example.test/dashboard", `javascript://example.test/invite/${token}`, `/invite/${token}/extra`, "not-a-link", "x".repeat(2001)]) {
+    assert.equal(caseEntry.invitationPath(value), null);
+  }
+});
+
+test("saved five-step case drafts resume in the simplified three-step form", () => {
+  assert.deepEqual([1, 2, 3, 4, 5].map(step => caseEntry.caseEntryStep(step)), [1, 1, 2, 2, 3]);
+  assert.deepEqual([1, 2, 3].map(step => caseEntry.caseEntryStep(step, 2)), [1, 2, 3]);
+});
+
+test("optional case names produce valid titles for new and restored drafts", () => {
+  const description = "Shartnoma bo‘yicha qarzni qaytarish muddatini kelishmoqchiman.";
+  assert.equal(caseEntry.caseEntryTitle(" a  ", description), description);
+  assert.equal(caseEntry.caseEntryTitle("abc", description), description);
+  assert.equal(caseEntry.caseEntryTitle("", description), description);
+  assert.equal(caseEntry.caseEntryTitle("  Qarz masalasi  ", description), "Qarz masalasi");
+  assert.equal(caseEntry.caseEntryTitle("", "x".repeat(150)).length, 120);
+});
 
 test("Uzbek interface uses the requested alphabet and preserves technical references", () => {
   assert.equal(localeText("O‘zbekcha: G‘ gʻ O' oʼ Sh sh CH ch", "uz"), "Özbekça: Ğ ğ Ö ö Ş ş Ç ç");

@@ -15,6 +15,7 @@ import { useData } from "@/lib/use-data";
 import { fullDate, money } from "@/lib/utils";
 import type { CasePayment, CaseRecord } from "@/lib/types";
 import { caseNextStep } from "@/lib/case-journey";
+import { isParty } from "@/lib/mediation";
 import { T, useI18n } from "@/lib/i18n";
 
 export function CustomerCaseList({ cases }: { cases: CaseRecord[] }) {
@@ -24,6 +25,9 @@ export function CustomerCaseList({ cases }: { cases: CaseRecord[] }) {
     <div className="friendly-case-list">
       {cases.map((record) => {
         const next = caseNextStep(record, user.id);
+        const caseHref = isParty(record, user.id) && record.status !== "CLOSED"
+          ? `/dashboard/cases/${record.id}/workbench?section=positions`
+          : `/dashboard/cases/${record.id}`;
         return (
           <article className="friendly-case-row" key={record.id}>
             <span className="friendly-case-symbol">
@@ -31,7 +35,7 @@ export function CustomerCaseList({ cases }: { cases: CaseRecord[] }) {
             </span>
             <div>
               <div className="friendly-case-title">
-                <Link href={`/dashboard/cases/${record.id}`}>
+                <Link href={caseHref}>
                   {record.demo ? <T>{record.title}</T> : record.title}
                 </Link>
                 {record.demo && (
@@ -115,6 +119,10 @@ export function Dashboard() {
               <T>Yangi muammo boshlash</T>
             </Link>
           </Button>
+          <Link className="quiet-link party-invitation-link" href="/dashboard/new?party=2">
+            <T>Men 2-tarafman — taklifni ochish</T>
+            <ArrowRight size={17} />
+          </Link>
         </div>
       </section>
       {intro && (

@@ -119,9 +119,6 @@ body .dialog-heading p {
 .app-shell textarea::placeholder {
   color: #5e6e62;
 }
-.case-creation-shell ~ .assistant-launcher {
-  bottom: 100px;
-}
 .service-panel {
   padding: clamp(20px, 3vw, 32px);
   margin-bottom: 24px;

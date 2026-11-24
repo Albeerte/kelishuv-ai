@@ -41,13 +41,16 @@ export function AuthPage({ register }: { register: boolean }) {
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     const next = query.get("next") || "";
-    if (/^\/invite\/[a-f0-9]{64}$/.test(next)) setNextPath(next);
+    if (/^\/invite\/[a-f0-9]{64}$/.test(next)) {
+      setNextPath(next);
+      if (register) setStep(2);
+    }
     if (query.get("role") === "MEDIATOR") setRole("MEDIATOR");
     if (query.get("role") === "ORGANIZATION") {
       setRole("ORGANIZATION");
       setAccountType("ORGANIZATION");
     }
-  }, []);
+  }, [register]);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (register && step === 1) {
@@ -178,6 +181,7 @@ export function AuthPage({ register }: { register: boolean }) {
           <LocaleSwitcher />
         </div>
         <div className="friendly-auth-form">
+          {nextPath && <p className="party-auth-context"><T>Siz 2-taraf sifatida taklif oldingiz. Hisobga kirgach, shu murojaatga qaytasiz.</T></p>}
           <header>
             <p className="auth-step-label">
               {register && (

@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Clipboard,
   FileText,
+  Link2,
   Loader2,
   Paperclip,
   Save,
@@ -28,8 +29,10 @@ import {
   type DisputeType,
 } from "@/lib/types";
 import { EMPTY_FACTS, RoutingQuestions } from "./mediation";
+import { caseEntryStep, caseEntryTitle, invitationPath } from "@/lib/case-entry";
 
 const draftSchema = z.object({
+  version: z.literal(2).optional(),
   requestId: z.string().uuid().optional(),
   submitted: z.boolean().optional(),
   caseId: z.string().uuid().optional(),
@@ -66,23 +69,7 @@ const draftSchema = z.object({
     thirdPartyRights: z.enum(["YES", "NO", "UNKNOWN"]),
   }),
 });
-const descriptions: Record<DisputeType, string> = {
-  MEHNAT: "Ish haqi va mehnat munosabatlari",
-  SHARTNOMA: "Qarz, ijara va kelishilgan shartlar",
-  QOSHNI: "Qo‘shnichilik va umumiy hudud",
-  OILA: "Oila va mol-mulk masalalari",
-  ISTE_MOLCHI: "Tovar yoki xizmat sifati",
-  BIZNES: "Hamkorlar va biznes munosabatlari",
-  YER_MULK: "Yer va ko‘chmas mulk",
-  BOSHQA: "Boshqa masala bo‘yicha yordam",
-};
-const steps = [
-  "Muammo turi",
-  "Vaziyat",
-  "Ikkinchi taraf",
-  "Hujjatlar",
-  "Tekshirish",
-];
+const steps = ["Nizo", "Dalil va taklif", "Yuborish"];
 
 export function NewCase() {
   const { user } = useProfile();
@@ -94,8 +81,9 @@ function GuidedCase() {
   const { toast, refresh } = useUI();
   const { t } = useI18n();
   const [draft, setDraft] = useState<z.infer<typeof draftSchema>>({
+    version: 2,
     step: 1,
-    type: "",
+    type: "BOSHQA",
     title: "",
     description: "",
     amount: "",
@@ -114,6 +102,10 @@ function GuidedCase() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [restored, setRestored] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [entry, setEntry] = useState<"create" | "join">("create");
+  const [inviteLink, setInviteLink] = useState("");
+  const [joinError, setJoinError] = useState("");
   const [result, setResult] = useState<Pick<CaseRecord, "id" | "title"> | null>(null);
   const [invitationUrl, setInvitationUrl] = useState("");
   const [invitationError, setInvitationError] = useState("");
@@ -133,13 +125,21 @@ function GuidedCase() {
   }, []);
   const key = `kelishuv-case-draft-${user.id}`;
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("party") === "2") setEntry("join");
     try {
       const saved = sessionStorage.getItem(key);
       if (saved) {
         const restoredDraft = draftSchema.parse(JSON.parse(saved));
         setDraft({
           ...restoredDraft,
-          step: restoredDraft.submitted ? 5 : restoredDraft.step,
+          version: 2,
+          type: restoredDraft.type || "BOSHQA",
+          step: restoredDraft.submitted
+            ? 3
+            : restoredDraft.description.trim().length < 20 || restoredDraft.city.trim().length < 2
+              ? 1
+              : caseEntryStep(restoredDraft.step, restoredDraft.version),
         });
         if (restoredDraft.caseId) {
           setResult({ id: restoredDraft.caseId, title: restoredDraft.title });
@@ -155,7 +155,7 @@ function GuidedCase() {
         }
         setRestored(true);
       } else {
-        const type = new URLSearchParams(window.location.search).get("type");
+        const type = query.get("type");
         if (type && Object.hasOwn(TYPE_LABELS, type))
           setDraft((current) => ({ ...current, type: type as DisputeType }));
       }
@@ -165,8 +165,18 @@ function GuidedCase() {
       } catch {
         /* Draft storage is optional. */
       }
+    } finally {
+      setLoaded(true);
     }
   }, [key]);
+  useEffect(() => {
+    if (!loaded || result) return;
+    try {
+      sessionStorage.setItem(key, JSON.stringify(draft));
+    } catch {
+      /* The form also works when optional browser storage is unavailable. */
+    }
+  }, [draft, loaded, key, result]);
   function update(values: Partial<typeof draft>) {
     setDraft((current) => ({ ...current, ...values }));
   }
@@ -217,7 +227,7 @@ function GuidedCase() {
       writeDraft({
         ...draft,
         title: record.title,
-        step: 5,
+        step: 3,
         submitted: true,
         requestId: requestId.current || draft.requestId,
         caseId: record.id,
@@ -229,20 +239,26 @@ function GuidedCase() {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy) return;
-    if (draft.step < 5) {
+    if (draft.step < 3) {
+      if (
+        draft.step === 1 &&
+        (draft.description.trim().length < 20 || draft.city.trim().length < 2)
+      ) {
+        setError(t("Vaziyatni kamida 20 belgi bilan yozing va shaharni kiriting."));
+        return;
+      }
       changeStep(draft.step + 1);
       return;
     }
     if (submitting.current) return;
     if (
       !draft.type ||
-      draft.title.trim().length < 4 ||
       draft.description.trim().length < 20 ||
       draft.city.trim().length < 2
     ) {
       setError(
         t(
-          "Sarlavha, vaziyat va shaharni tekshiring. Bo‘sh joylar hisobga olinmaydi.",
+          "Vaziyatni kamida 20 belgi bilan yozing va shaharni kiriting.",
         ),
       );
       return;
@@ -256,7 +272,8 @@ function GuidedCase() {
     ];
     const submittedDraft = {
       ...draft,
-      step: 5,
+      title: caseEntryTitle(draft.title, draft.description),
+      step: 3,
       submitted: true,
       requestId: requestId.current,
       uploadFailures: pendingFiles,
@@ -274,7 +291,7 @@ function GuidedCase() {
             method: "POST",
             body: JSON.stringify({
               requestId: requestId.current,
-              title: draft.title.trim(),
+              title: submittedDraft.title,
               description: draft.description.trim(),
               type: draft.type,
               claimAmount: Number(draft.amount) || 0,
@@ -380,19 +397,13 @@ function GuidedCase() {
       submitting.current = false;
     }
   }
-  if (result)
+  if (result && entry === "create")
     return (
       <section className="panel friendly-submitted">
         <CheckCircle2 size={44} />
         <h1>
-          <T>Ma’lumotlaringiz qabul qilindi.</T>
+          <T>Nizo saqlandi</T>
         </h1>
-        <p>
-          <T>
-            Dastlabki yo‘nalishlar tayyor. Endi ish tafsilotlari bilan tanishib,
-            keyingi qadamni tanlashingiz mumkin.
-          </T>
-        </p>
         <strong>{result.title}</strong>
         {uploadFailures.length > 0 && (
           <p className="form-error">
@@ -402,7 +413,7 @@ function GuidedCase() {
         )}
         {invitationUrl && (
           <div className="friendly-invitation">
-            <T>Taklif havolasi tayyor. Ikkinchi tarafga ulashing.</T>
+            <T>Havolani 2-tarafga yuboring.</T>
             <input
               readOnly
               value={invitationUrl}
@@ -485,8 +496,8 @@ function GuidedCase() {
           </div>
         )}
         <Button asChild>
-          <Link href={`/dashboard/cases/${result.id}`}>
-            <T>Ishimni ko‘rish</T>
+          <Link href={`/dashboard/cases/${result.id}/workbench?section=positions`}>
+            <T>Nizoni ochish</T>
             <ArrowRight size={18} />
           </Link>
         </Button>
@@ -511,15 +522,76 @@ function GuidedCase() {
       </Link>
       <header>
         <h1>
-          <T>Muammoingizni birga tushunib olaylik.</T>
-        </h1>
-        <p>
           <T>
-            Hozir bilganlaringizni yozing. Qolganini keyin aniqlashtirish
-            mumkin.
+            {entry === "create" ? "Yangi nizo" : "Taklifga javob"}
           </T>
-        </p>
+        </h1>
       </header>
+      <div
+        className="party-entry-options"
+        role="group"
+        aria-label={t("Nizodagi tarafingiz")}
+      >
+        <button
+          type="button"
+          aria-pressed={entry === "create"}
+          onClick={() => setEntry("create")}
+        >
+          <strong><T>1-taraf</T></strong>
+          <span><T>Murojaat</T></span>
+        </button>
+        <button
+          type="button"
+          aria-pressed={entry === "join"}
+          onClick={() => setEntry("join")}
+        >
+          <strong><T>2-taraf</T></strong>
+          <span><T>Javob</T></span>
+        </button>
+      </div>
+      {entry === "join" ? (
+        <form
+          className="panel form-stack party-join-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const path = invitationPath(inviteLink);
+            if (!path) {
+              setJoinError(t("Sizga yuborilgan to‘liq taklif havolasini kiriting."));
+              return;
+            }
+            window.location.assign(path);
+          }}
+        >
+          <h2><T>Sizga taklif yuborildimi?</T></h2>
+          <label>
+            <T>Taklif havolasi</T>
+            <input
+              required
+              type="text"
+              inputMode="url"
+              autoCapitalize="none"
+              spellCheck={false}
+              maxLength={2000}
+              value={inviteLink}
+              onChange={(event) => {
+                setInviteLink(event.target.value);
+                setJoinError("");
+              }}
+              placeholder={t("Bu yerga yuborilgan havolani joylang")}
+              aria-describedby="party-join-hint"
+              aria-invalid={!!joinError}
+            />
+          </label>
+          <p id="party-join-hint">
+            <T>Havolani 1-tarafdan oling. Nizoga qo‘shilgach, o‘z bayoningiz va hujjatlaringizni kiritasiz.</T>
+          </p>
+          {joinError && <p className="form-error" role="alert">{joinError}</p>}
+          <Button type="submit">
+            <Link2 size={18} />
+            <T>Taklifni ochish</T>
+          </Button>
+        </form>
+      ) : <>
       <ol className="friendly-wizard-progress">
         {steps.map((label, index) => (
           <li
@@ -550,7 +622,7 @@ function GuidedCase() {
       ) : (
         restored && (
           <p className="friendly-draft-notice">
-            <T>Qoralamangiz tiklandi. Kerakli fayllarni qaytadan tanlang.</T>
+            <T>Qoralama tiklandi. Fayllarni qayta tanlang.</T>
           </p>
         )
       )}
@@ -558,73 +630,70 @@ function GuidedCase() {
         className="panel friendly-wizard-panel form-stack"
         onSubmit={submit}
       >
-        <h2 ref={heading} tabIndex={-1}>
+        <h2 ref={heading} tabIndex={-1} className={draft.step === 1 ? "sr-only" : undefined}>
           <T>{steps[draft.step - 1]}</T>
         </h2>
         {draft.step === 1 && (
           <>
-            <p>
-              <T>Vaziyatingizga eng yaqin yo‘nalishni tanlang.</T>
-            </p>
-            <div className="friendly-type-list">
-              {Object.entries(TYPE_LABELS).map(([type, label]) => (
-                <button
-                  type="button"
-                  aria-pressed={draft.type === type}
-                  className={draft.type === type ? "selected" : ""}
-                  key={type}
-                  onClick={() => update({ type: type as DisputeType })}
-                >
-                  <span>
-                    <strong>
-                      <T>{label}</T>
-                    </strong>
-                    <small>
-                      <T>{descriptions[type as DisputeType]}</T>
-                    </small>
-                  </span>
-                  <span className="selection-check">
-                    {draft.type === type && <Check size={15} />}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-        {draft.step === 2 && (
-          <>
             <label>
-              <T>Muammo sarlavhasi</T>
-              <input
-                required
-                minLength={4}
-                maxLength={120}
-                value={draft.title}
-                onChange={(event) => update({ title: event.target.value })}
-                placeholder={t("Masalan, ijara puli bo‘yicha kelishmovchilik")}
-              />
-            </label>
-            <label>
-              <T>Vaziyatni qisqacha tushuntiring</T>
+              <T>Vaziyat</T>
               <textarea
-                aria-label={t("Vaziyatni qisqacha tushuntiring")}
+                aria-label={t("Vaziyat")}
                 aria-describedby="case-description-hint"
                 required
                 minLength={20}
                 maxLength={10000}
-                rows={6}
+                rows={5}
                 value={draft.description}
                 onChange={(event) =>
                   update({ description: event.target.value })
                 }
                 placeholder={t(
-                  "Nima bo‘ldi va qanday natijaga erishmoqchisiz?",
+                  "Nima bo‘ldi? Nimani so‘rayapsiz?",
                 )}
               />
               <small id="case-description-hint">
-                <T>Oddiy so‘zlar yetarli. Kamida 20 belgi.</T>
+                <T>Ikkinchi taraf ham ko‘radi.</T>
               </small>
             </label>
+            <div className="form-two-cols">
+              <label>
+                <T>Hudud</T>
+                <select value={draft.region} onChange={(event) => update({ region: event.target.value })}>
+                  {REGIONS.map((region) => <option value={region} key={region}>{region}</option>)}
+                </select>
+              </label>
+              <label>
+                <T>Shahar yoki tuman</T>
+                <input
+                  required
+                  minLength={2}
+                  maxLength={100}
+                  value={draft.city}
+                  onChange={(event) => update({ city: event.target.value })}
+                  autoComplete="address-level2"
+                />
+              </label>
+            </div>
+            <details className="friendly-disclosure">
+              <summary>
+                <T>Qo‘shimcha</T>
+              </summary>
+              <div className="party-optional-fields">
+            <div className="form-two-cols">
+              <label>
+                <T>Muammo turi</T>
+                <select
+                  value={draft.type || "BOSHQA"}
+                  onChange={(event) => update({ type: event.target.value as DisputeType })}
+                >
+                  {Object.entries(TYPE_LABELS).map(([type, label]) => (
+                    <option key={type} value={type}>
+                      {t(type === "BOSHQA" ? "Boshqa / aniq bilmayman" : label)}
+                    </option>
+                  ))}
+                </select>
+              </label>
             <label>
               <T>Talab miqdori, so‘m</T>
               <small>
@@ -637,12 +706,24 @@ function GuidedCase() {
                 step={1}
                 value={draft.amount}
                 onChange={(event) => update({ amount: event.target.value })}
+                onInvalid={(event) => {
+                  const details = event.currentTarget.closest("details");
+                  if (details) details.open = true;
+                }}
               />
             </label>
-            <details className="friendly-disclosure">
-              <summary>
-                <T>Huquqiy yo‘l uchun qo‘shimcha savollar</T>
-              </summary>
+            </div>
+
+                <label>
+                  <T>Murojaat nomi</T>
+                  <small><T>Ixtiyoriy. Kiritmasangiz, bayoningizdan olinadi.</T></small>
+                  <input
+                    maxLength={120}
+                    value={draft.title}
+                    onChange={(event) => update({ title: event.target.value })}
+                  />
+                </label>
+              </div>
               <RoutingQuestions
                 value={draft.routingFacts}
                 onChange={(routingFacts) => update({ routingFacts })}
@@ -650,39 +731,8 @@ function GuidedCase() {
             </details>
           </>
         )}
-        {draft.step === 3 && (
+        {draft.step === 2 && (
           <>
-            <p>
-              <T>
-                Shahar mediator topishga yordam beradi. Ikkinchi tarafni hozir
-                yoki keyin taklif qilishingiz mumkin.
-              </T>
-            </p>
-            <div className="form-two-cols">
-              <label>
-                <T>Hudud</T>
-                <select
-                  value={draft.region}
-                  onChange={(event) => update({ region: event.target.value })}
-                >
-                  {REGIONS.map((region) => (
-                    <option value={region} key={region}>
-                      {region}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <T>Shahar yoki tuman</T>
-                <input
-                  required
-                  minLength={2}
-                  maxLength={100}
-                  value={draft.city}
-                  onChange={(event) => update({ city: event.target.value })}
-                />
-              </label>
-            </div>
             <label className="consent-checkbox">
               <input
                 type="checkbox"
@@ -690,7 +740,7 @@ function GuidedCase() {
                 onChange={(event) => update({ invite: event.target.checked })}
               />
               <span>
-                <T>Ikkinchi taraf uchun taklif havolasi yaratmoqchiman</T>
+                <T>2-tarafni taklif qilish</T>
               </span>
             </label>
             {draft.invite && (
@@ -756,8 +806,10 @@ function GuidedCase() {
             )}
           </>
         )}
-        {draft.step === 4 && (
-          <>
+        {draft.step === 2 && (
+          <details className="friendly-disclosure">
+            <summary><T>Hujjat ilova qilish</T>{files.length > 0 && ` (${files.length})`}</summary>
+            <div className="party-optional-fields">
             <p>
               <T>
                 Hujjat yuklash ixtiyoriy. Ularni ish yaratilgandan so‘ng ham
@@ -821,9 +873,10 @@ function GuidedCase() {
                 Keyin ulashish tanlovini belgilaysiz.
               </T>
             </p>
-          </>
+            </div>
+          </details>
         )}
-        {draft.step === 5 && (
+        {draft.step === 3 && (
           <>
             <p>
               <T>Yuborishdan oldin ma’lumotlarni ko‘rib chiqing.</T>
@@ -833,7 +886,7 @@ function GuidedCase() {
                 <dt>
                   <T>Muammo</T>
                 </dt>
-                <dd>{draft.title}</dd>
+                <dd>{caseEntryTitle(draft.title, draft.description)}</dd>
               </div>
               <div>
                 <dt>
@@ -918,27 +971,27 @@ function GuidedCase() {
           </Button>
           <Button
             type="submit"
-            disabled={busy || (draft.step === 1 && !draft.type)}
+            disabled={busy || !loaded}
           >
             {busy ? (
               <Loader2 size={18} className="spin" />
-            ) : draft.step === 5 ? (
+            ) : draft.step === 3 ? (
               <FileText size={18} />
             ) : null}
             <T>
               {busy
                 ? "Saqlanmoqda..."
-                : draft.step === 5
-                  ? "Murojaatni yuborish"
-                  : "Davom etish"}
+                : draft.step === 3
+                  ? "Yuborish"
+                  : "Keyingi"}
             </T>
-            {!busy && draft.step < 5 && <ArrowRight size={17} />}
+            {!busy && draft.step < 3 && <ArrowRight size={17} />}
           </Button>
         </footer>
       </form>
       <div className="friendly-draft-controls">
         <span>
-          <T>Qoralama shu brauzer sessiyasida saqlanadi.</T>
+          <T>Avtomatik saqlanadi.</T>
         </span>
         {draft.step > 1 && (
           <button
@@ -952,6 +1005,7 @@ function GuidedCase() {
           </button>
         )}
       </div>
+      </>}
     </div>
   );
 }

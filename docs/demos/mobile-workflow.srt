@@ -1,0 +1,123 @@
+1
+00:00:00,000 --> 00:00:05,000
+Murojaatdan mediator tekshiruvigacha
+
+2
+00:00:05,000 --> 00:00:05,329
+Muammo, talab va hujjatlar kiritiladi
+
+3
+00:00:05,329 --> 00:00:07,446
+Yangi muammo boshlash
+
+4
+00:00:07,446 --> 00:00:08,634
+Shartnoma nizosini tanlaydi
+
+5
+00:00:08,634 --> 00:00:16,545
+Talab va vaziyatni yozadi
+
+6
+00:00:16,545 --> 00:00:22,707
+Ikkinchi tarafga taklif yaratadi
+
+7
+00:00:22,707 --> 00:00:26,659
+Tilxat va chekni yuklaydi
+
+8
+00:00:26,659 --> 00:00:28,290
+Murojaatni tekshirib yuboradi
+
+9
+00:00:28,290 --> 00:00:31,000
+Taklif havolasi tayyor
+
+10
+00:00:31,000 --> 00:00:35,000
+AI ishloviga rozilik beradi
+
+11
+00:00:35,000 --> 00:00:35,433
+Taklifni ochib o‘z bayonini yozadi
+
+12
+00:00:35,433 --> 00:00:38,686
+Taklif havolasini ochadi
+
+13
+00:00:38,686 --> 00:00:41,787
+Murojaat bilan tanishadi
+
+14
+00:00:41,787 --> 00:00:48,791
+O‘z bayonini kiritadi
+
+15
+00:00:48,791 --> 00:00:58,000
+5 millionlik chekni yuklaydi
+
+16
+00:00:58,000 --> 00:01:01,000
+AI ikkala bayonni tahlil qiladi
+
+17
+00:01:01,000 --> 00:01:08,000
+Umumiy faktlar va tafovutlar ko‘rinadi
+
+18
+00:01:08,000 --> 00:01:13,000
+To‘rtta kelishuv taklifi tayyorlanadi
+
+19
+00:01:13,000 --> 00:01:14,500
+Birinchi taklifga o‘zgartirish so‘raladi
+
+20
+00:01:14,500 --> 00:01:16,000
+Ikkinchi taraf ham javob beradi
+
+21
+00:01:16,000 --> 00:01:19,500
+Birinchi taraf jadvalni ma’qullaydi
+
+22
+00:01:19,500 --> 00:01:23,000
+Ikkinchi taraf ham ma’qullaydi
+
+23
+00:01:23,000 --> 00:01:26,000
+Mediatorga yuborishga rozilik beradi
+
+24
+00:01:26,000 --> 00:01:29,000
+Ikkala rozilik bilan so‘rov ochiladi
+
+25
+00:01:29,000 --> 00:01:33,000
+Shahridagi mediator so‘rovni qabul qiladi
+
+26
+00:01:33,000 --> 00:01:35,500
+Mediator ikkala bayonni tekshiradi
+
+27
+00:01:35,500 --> 00:01:39,500
+Hujjat matni va summalarni solishtiradi
+
+28
+00:01:39,500 --> 00:01:42,000
+AI taklifini dalillar bilan solishtiradi
+
+29
+00:01:42,000 --> 00:01:49,000
+Kelishilgan rejani tasdiqlaydi
+
+30
+00:01:49,000 --> 00:01:53,000
+Tasdiqlangan reja ikkala tarafga ko‘rinadi
+
+31
+00:01:53,000 --> 00:01:58,000
+Har ikki taraf uchun tushunarli jarayon

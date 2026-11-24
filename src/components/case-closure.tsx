@@ -10,7 +10,7 @@ import { useUI } from "@/lib/client-store";
 import { api } from "@/lib/utils";
 import type { CaseRecord } from "@/lib/types";
 
-export function CaseClosureControls({ record }: { record: CaseRecord }) {
+export function CaseClosureControls({ record, compact = false }: { record: CaseRecord; compact?: boolean }) {
   const { user } = useProfile();
   const { t } = useI18n();
   const { refresh } = useUI();
@@ -67,6 +67,32 @@ export function CaseClosureControls({ record }: { record: CaseRecord }) {
     }
   }
   if (!party) return null;
+  const actions = (
+    <div className="closure-actions">
+      <Button
+        variant="outline"
+        onClick={() => {
+          setKind("SETTLED_EXTERNALLY");
+          setReason("");
+          requestId.current = "";
+        }}
+      >
+        <CheckCircle2 size={18} />
+        <T>O‘zaro kelishib oldik</T>
+      </Button>
+      <Button
+        variant="ghost"
+        onClick={() => {
+          setKind("WITHDRAWN");
+          setReason("");
+          requestId.current = "";
+        }}
+      >
+        <XCircle size={18} />
+        <T>Murojaatni qaytarib olish</T>
+      </Button>
+    </div>
+  );
   return (
     <section className="case-closure-controls">
       {closure?.status === "CLOSED" ? (
@@ -131,30 +157,12 @@ export function CaseClosureControls({ record }: { record: CaseRecord }) {
         </div>
       ) : (
         !closed && (
-          <div className="closure-actions">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setKind("SETTLED_EXTERNALLY");
-                setReason("");
-                requestId.current = "";
-              }}
-            >
-              <CheckCircle2 size={18} />
-              <T>O‘zaro kelishib oldik</T>
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setKind("WITHDRAWN");
-                setReason("");
-                requestId.current = "";
-              }}
-            >
-              <XCircle size={18} />
-              <T>Murojaatni qaytarib olish</T>
-            </Button>
-          </div>
+          compact ? (
+            <details className="workbench-closure-options">
+              <summary><T>Nizoni yakunlash</T></summary>
+              {actions}
+            </details>
+          ) : actions
         )
       )}
       {error && (

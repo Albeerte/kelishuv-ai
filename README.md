@@ -3,6 +3,22 @@
 
 Özbekiston uçun mahalliy mediatsiya va nizolarni hal qiliş platformasi. Ilova `http://localhost:2345` manzilida işlaydi.
 
+## Töliq loyiha va yuklamalar
+
+[Töliq reliz materiallari](https://github.com/Albeerte/kelishuv-ai/releases/tag/project-complete-2026-11-24) kod, videolar, subtitrlar, taqdimotlar, hujjat namunalari va sinov dalillarini bir joyda jamlaydi. Manba kodi va işga tuşiriş fayllari uşbu repozitoriyda saqlanadi.
+
+| Material | Yuklab oliş |
+| --- | --- |
+| Ovozli 4K namoyiş, 120 soniya | [MP4 video](https://github.com/Albeerte/kelishuv-ai/releases/download/project-complete-2026-11-24/Kelishuv-AI-4K-UzVoiceLab-120s.mp4) |
+| Ikkala taraf telefonda, 1 daqiqa 58 soniya | [16:9 MP4 video](https://github.com/Albeerte/kelishuv-ai/releases/download/project-complete-2026-11-24/kelishuv-telefon-demo-1m58s.mp4) |
+| Mediativ kelişuv namunasi | [PDF](docs/examples/mediativ-kelishuv-namuna.pdf) · [Word](docs/examples/mediativ-kelishuv-namuna.docx) |
+| Törtta nizo uçun sinov dalillari | [PDF, çek va matnlar töplami](docs/examples/kelishuv-sinov-dalillari.zip) |
+| Yakuniy xakaton taqdimoti | [PDF](docs/presentation/kelishuv.pdf) |
+
+![Telefon interfeysida ikki tarafli jarayon](docs/demos/mobile-workflow.png)
+
+Videolarda sinov hisoblari va hujjatlari işlatilgan. Matn kiritiş va hisoblaş kutişlari montajda qisqartirilgan. Reliz fayllarining hajmi va SHA-256 qiymatlari relizdagi `SHA256SUMS.txt` faylida berilgan.
+
 ## Xakaton taqdimoti
 
 [PDFni ochish yoki yuklab olish](https://raw.githubusercontent.com/Albeerte/kelishuv-ai/codex/initial-release/docs/presentation/kelishuv.pdf)
@@ -194,7 +210,7 @@ npm run build
 npm audit
 ```
 
-Saqlangan 66 ta regressiya testi maxfiylik, AI dispatç ruxsati, audit, hujjat çegaralari, tölov qayta urinişlari, şaxsni tekşiriş callbacklari, SMS yuboriş, Zoom tiklaş, takliflar, RAG manbalari, raqamli da’volar, bepul limit, nizoni yopiş va yangi harflar bilan qidiruvni qamraydi. Ngrok orqali ikki tarafli taklif va yopiş jarayoni, haqiqiy lokal RAG javobi hamda 10 ta sörov limiti tekşirildi. Uçta yangi avtomatik WCAG auditida xato qaytmadi. `npm run test:design` töqqizta ekstraktor regressiyasini tekşiradi. API va brauzer natijalari [VERIFICATION.md](docs/VERIFICATION.md) hujjatida qayd etilgan.
+Saqlangan 69 ta regressiya testi maxfiylik, AI dispatç ruxsati, audit, hujjat çegaralari, tölov qayta urinişlari, şaxsni tekşiriş callbacklari, SMS yuboriş, Zoom tiklaş, takliflar, RAG manbalari, raqamli da’volar, bepul limit, nizoni yopiş, yangi harflar bilan qidiruv va soddalaştirilgan murojaatni qamraydi. Ngrok orqali ikki tarafli taklif va yopiş jarayoni, haqiqiy lokal RAG javobi hamda 10 ta sörov limiti tekşirildi. Uçta yangi avtomatik WCAG auditida xato qaytmadi. `npm run test:design` töqqizta ekstraktor regressiyasini tekşiradi. API va brauzer natijalari [VERIFICATION.md](docs/VERIFICATION.md) hujjatida qayd etilgan.
 
 ## Tadqiqot va reja
 
@@ -208,7 +224,7 @@ Saqlangan 66 ta regressiya testi maxfiylik, AI dispatç ruxsati, audit, hujjat �
 
 ## Yangilangan interfeys
 
-Ommaviy taqdimot `/welcome`, şaxsiy kabinet `/`, ikki qadamli röyxatdan ötiş `/auth/register`, beş qadamli murojaat `/dashboard/new` manzillarida işlaydi. Mediator `/mediator`, administrator `/admin` bölimidan foydalanadi.
+Ommaviy taqdimot `/welcome`, şaxsiy kabinet `/`, ikki qadamli röyxatdan ötiş `/auth/register`, uç qadamli murojaat `/dashboard/new` manzillarida işlaydi. 2-taraf `/dashboard/new?party=2` orqali taklif havolasini oçadi. Iş maydonida bayon va dalillar asosiy körinişda, keyingi qadamlar, bölim tanlaş va nizoni yakunlaş alohida oçiladigan qismlarda joylaşgan. Mediator `/mediator`, administrator `/admin` bölimidan foydalanadi.
 
 Qoralama şu brauzer sessiyasida har bir hisob uçun alohida saqlanadi. Tiklaşda fayllar qayta tanlanadi. Murojaat yuborilgaç aloqa uzilsa, qayta uriniş saqlangan işni tiklaydi. Taklif yaratişdagi xato saqlangan işga boğlangan qayta uriniş orqali davom ettiriladi.
 

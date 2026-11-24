@@ -21,7 +21,6 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
-  UploadCloud,
   X,
 } from "lucide-react";
 import { Button } from "../ui/button";
@@ -54,6 +53,7 @@ import type {
   Notification,
 } from "@/lib/types";
 import { negotiationState } from "@/lib/negotiation";
+import { caseNextStep } from "@/lib/case-journey";
 import { CaseServices } from "./services";
 import { CaseClosureControls } from "../case-closure";
 import type {
@@ -76,6 +76,13 @@ const sectionLabels: Record<Section, string> = {
   agreement: "Kelishuv va imzo",
   execution: "Ijro kuzatuvi",
   room: "Mediatsiya xonasi",
+};
+const simpleSectionLabels: Record<Section, string> = {
+  positions: "Mening bayonim",
+  analysis: "Yechim takliflari",
+  agreement: "Kelishuv hujjati",
+  execution: "To‘lov va bajarilish",
+  room: "Suhbat",
 };
 
 export function WorkspaceIndex({
@@ -207,19 +214,30 @@ export function CaseWorkbench({
   caseId: string;
   section?: Section;
 }) {
+  const { user } = useProfile();
   const workspace = useData<CaseWorkspace>(`/api/cases/${caseId}/workspace`);
   const details = useData<{
     mediator: Mediator | null;
     sessions: MediationSession[];
   }>(`/api/cases/${caseId}`);
   const [section, setSection] = useState<Section>(initialSection);
+  const [progressOpen, setProgressOpen] = useState(false);
+  const content = useRef<HTMLDivElement>(null);
+  const mediationContent = useRef<HTMLDivElement>(null);
   const { t } = useI18n();
   useEffect(() => {
-    const value = new URLSearchParams(window.location.search).get(
-      "section",
-    ) as Section;
-    if (value in sectionLabels) setSection(value);
-  }, [caseId]);
+    function readSection() {
+      const value = new URLSearchParams(window.location.search).get("section");
+      const selected = value && Object.hasOwn(sectionLabels, value)
+        ? value as Section
+        : initialSection;
+      setSection(selected);
+      if (selected !== "positions") setProgressOpen(true);
+    }
+    readSection();
+    window.addEventListener("popstate", readSection);
+    return () => window.removeEventListener("popstate", readSection);
+  }, [caseId, initialSection]);
   useEffect(() => {
     if (
       section !== "room" &&
@@ -243,6 +261,74 @@ export function CaseWorkbench({
   if (workspace.error || !workspace.data)
     return <ErrorState message={workspace.error} retry={workspace.reload} />;
   const data = workspace.data;
+  const party = isParty(data.case, user.id);
+  const next = caseNextStep(data.case, user.id);
+  const nextSection = new URL(next.href, "https://kelishuv.invalid").searchParams.get("section");
+  const waitingForMediator = data.case.status === "OPEN_FOR_MEDIATORS" &&
+    !data.case.mediatorId && hasBothConsents(data.case) && nextSection === "positions";
+  function openSection(value: string) {
+    if (!Object.hasOwn(sectionLabels, value)) return;
+    setSection(value as Section);
+    if (value !== "positions") setProgressOpen(true);
+    const url = new URL(window.location.href);
+    url.searchParams.set("section", value);
+    url.hash = "";
+    window.history.replaceState(null, "", url.pathname + url.search);
+  }
+  const progressPanel = (
+    <details
+      className="workbench-progress"
+      open={progressOpen}
+      onToggle={(event) => setProgressOpen(event.currentTarget.open)}
+    >
+      <summary><LocalizedText>Keyingi qadamlar</LocalizedText></summary>
+      <div className="workbench-progress-body">
+        <section className="workbench-next-action" aria-label={t("Keyingi qadam")}>
+          <div>
+            <StatusBadge status={data.case.status} />
+            <p><LocalizedText>{waitingForMediator ? "Bayoningiz va hujjatlaringizni tekshirib chiqing." : next.description}</LocalizedText></p>
+          </div>
+          {nextSection && Object.hasOwn(sectionLabels, nextSection) ? (
+            <Button onClick={() => {
+              openSection(nextSection);
+              requestAnimationFrame(() => {
+                const target = nextSection === "positions" && !waitingForMediator
+                  ? mediationContent.current
+                  : content.current;
+                target?.focus({ preventScroll: true });
+                target?.scrollIntoView({ block: "start", behavior: "instant" });
+              });
+            }}>
+              <LocalizedText>{waitingForMediator ? "Bayonimni ko‘rish" : next.label}</LocalizedText>
+              <ArrowRight size={18} />
+            </Button>
+          ) : (
+            <Button asChild><Link href={next.href}><LocalizedText>{next.label}</LocalizedText></Link></Button>
+          )}
+        </section>
+        <label className="workbench-section-picker">
+          <span><LocalizedText>Bo‘lim</LocalizedText></span>
+          <select value={section} onChange={(event) => openSection(event.target.value)}>
+            {Object.entries(simpleSectionLabels).map(([value, label]) => (
+              <option key={value} value={value}>{t(label)}</option>
+            ))}
+          </select>
+        </label>
+        {section === "positions" && (
+          <div ref={mediationContent} className="workbench-mediation-content" tabIndex={-1}>
+            <CaseMediationPanel
+              record={data.case}
+              mediator={details.data?.mediator || null}
+              showStatement={false}
+            />
+          </div>
+        )}
+        <Link className="quiet-link" href={`/dashboard/cases/${caseId}`}>
+          <LocalizedText>Nizo haqida</LocalizedText>
+        </Link>
+      </div>
+    </details>
+  );
   if (data.case.status === "CLOSED")
     return (
       <section className="panel service-panel">
@@ -254,89 +340,92 @@ export function CaseWorkbench({
       </section>
     );
   return (
-    <div className="case-workbench">
-      <Link className="back-link" href={`/dashboard/cases/${caseId}`}>
+    <div className={`case-workbench${party ? " simple-case-workbench" : ""}`}>
+      <Link className="back-link" href={party ? "/dashboard" : `/dashboard/cases/${caseId}`}>
         <ArrowLeft size={15} />
-        <LocalizedText>Nizo tafsilotlari</LocalizedText>
+        <LocalizedText>{party ? "Mening ishlarim" : "Nizo tafsilotlari"}</LocalizedText>
       </Link>
       <div className="workbench-heading">
         <div>
-          <span className="workspace-case-number">{data.case.number}</span>
+          {!party && <span className="workspace-case-number">{data.case.number}</span>}
           <PageHeading
-            title={data.case.title}
-            description={`${data.case.city || data.case.region} · ${t("Umumiy ish maydoni")}`}
+            title={party ? t("Nizo") : data.case.title}
+            description={party ? undefined : `${data.case.city || data.case.region} · ${t("Umumiy ish maydoni")}`}
           />
         </div>
-        <StatusBadge status={data.case.status} />
+        {party ? <span className="party-role"><LocalizedText>{user.id === data.case.userId ? "1-taraf" : "2-taraf"}</LocalizedText></span> : <StatusBadge status={data.case.status} />}
       </div>
-      <nav className="workbench-tabs" aria-label={t("Nizo bosqichlari")}>
-        {Object.entries(sectionLabels).map(([key, label]) => (
-          <button
-            key={key}
-            className={section === key ? "active" : ""}
-            aria-current={section === key ? "step" : undefined}
-            onClick={() => {
-              setSection(key as Section);
-              window.history.replaceState(null, "", `?section=${key}`);
+      {party && progressPanel}
+      {!party && (
+        <nav className="workbench-tabs" aria-label={t("Nizo bosqichlari")}>
+          {Object.entries(sectionLabels).map(([key, label]) => (
+            <button
+              key={key}
+              className={section === key ? "active" : ""}
+              aria-current={section === key ? "step" : undefined}
+              onClick={() => openSection(key)}
+            >
+              {key === "analysis" ? (
+                <Sparkles size={17} />
+              ) : key === "agreement" ? (
+                <Fingerprint size={17} />
+              ) : key === "execution" ? (
+                <CheckCircle2 size={17} />
+              ) : key === "room" ? (
+                <MessageCircle size={17} />
+              ) : (
+                <Handshake size={17} />
+              )}
+              <LocalizedText>{label}</LocalizedText>
+            </button>
+          ))}
+        </nav>
+      )}
+      <div ref={content} id="workspace-content" className="workbench-content" tabIndex={-1}>
+        {section === "positions" && (
+          <>
+            <PositionEditor
+              key={`${caseId}-${user.id}`}
+              data={data}
+              onSaved={workspace.reload}
+            />
+            {!party && <CaseMediationPanel
+              record={data.case}
+              mediator={details.data?.mediator || null}
+              showStatement={false}
+            />}
+          </>
+        )}
+        {section === "analysis" && (
+          <AnalysisWorkspace data={data} onSaved={workspace.reload} />
+        )}
+        {section === "agreement" && (
+          <AgreementWorkspace data={data} onSaved={workspace.reload} />
+        )}
+        {section === "execution" && (
+          <ExecutionWorkspace data={data} onSaved={workspace.reload} />
+        )}
+        {(section === "room" || section === "execution") && (
+          <CaseServices
+            record={data.case}
+            canMediate={data.canMediate}
+            sessions={details.data?.sessions || []}
+            onSaved={() => {
+              workspace.reload();
+              details.reload();
             }}
-          >
-            {key === "analysis" ? (
-              <Sparkles size={17} />
-            ) : key === "agreement" ? (
-              <Fingerprint size={17} />
-            ) : key === "execution" ? (
-              <CheckCircle2 size={17} />
-            ) : key === "room" ? (
-              <MessageCircle size={17} />
-            ) : (
-              <Handshake size={17} />
-            )}
-            <LocalizedText>{label}</LocalizedText>
-          </button>
-        ))}
-      </nav>
-      <CaseClosureControls record={data.case} />
-      {section === "positions" && (
-        <>
-          <PositionEditor
-            key={`${caseId}-${data.myPosition?.userId || "new"}`}
+          />
+        )}
+        {section === "room" && (
+          <RoomWorkspace
             data={data}
+            mediator={details.data?.mediator || null}
+            sessions={details.data?.sessions || []}
             onSaved={workspace.reload}
           />
-          <CaseMediationPanel
-            record={data.case}
-            mediator={details.data?.mediator || null}
-          />
-        </>
-      )}
-      {section === "analysis" && (
-        <AnalysisWorkspace data={data} onSaved={workspace.reload} />
-      )}
-      {section === "agreement" && (
-        <AgreementWorkspace data={data} onSaved={workspace.reload} />
-      )}
-      {section === "execution" && (
-        <ExecutionWorkspace data={data} onSaved={workspace.reload} />
-      )}
-      {(section === "room" || section === "execution") && (
-        <CaseServices
-          record={data.case}
-          canMediate={data.canMediate}
-          sessions={details.data?.sessions || []}
-          onSaved={() => {
-            workspace.reload();
-            details.reload();
-          }}
-        />
-      )}
-      {section === "room" && (
-        <RoomWorkspace
-          data={data}
-          mediator={details.data?.mediator || null}
-          sessions={details.data?.sessions || []}
-          onSaved={workspace.reload}
-        />
-      )}
+        )}
+      </div>
+      {party && <CaseClosureControls record={data.case} compact />}
     </div>
   );
 }
@@ -351,6 +440,12 @@ function PositionEditor({
   const { user } = useProfile();
   const { toast, refresh } = useUI();
   const { t } = useI18n();
+  const owner = user.id === data.case.userId;
+  const party = isParty(data.case, user.id);
+  const otherUserId = owner ? data.case.mediation?.respondentId : data.case.userId;
+  const otherStatement =
+    data.case.positions?.find((position) => position.userId === otherUserId)?.sharedStatement ||
+    (owner ? data.case.mediation?.respondentStatement : data.case.description);
   const [shared, setShared] = useState(
     data.myPosition?.sharedStatement ||
       (user.id === data.case.userId
@@ -365,10 +460,21 @@ function PositionEditor({
     data.myPosition?.consent.external || false,
   );
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
   const [kind, setKind] = useState("APPLICATION");
   const [visibility, setVisibility] = useState("MEDIATOR_ONLY");
+  const [uploadError, setUploadError] = useState("");
+  const fileInput = useRef<HTMLInputElement>(null);
   async function save(event: React.FormEvent) {
     event.preventDefault();
+    if (busy) return;
+    if (shared.trim().length < 20) {
+      setError(t("Vaziyatni kamida 20 belgi bilan yozing."));
+      return;
+    }
+    setError("");
+    setSaved(false);
     setBusy(true);
     try {
       await api(`/api/cases/${data.case.id}/positions`, {
@@ -381,16 +487,18 @@ function PositionEditor({
           consentVersion: AI_CONSENT_VERSION,
         }),
       });
-      toast(t("Bayoningiz saqlandi"));
+      setSaved(true);
       refresh();
       onSaved();
     } catch (error) {
-      toast((error as Error).message, "error");
+      setError((error as Error).message);
     } finally {
       setBusy(false);
     }
   }
   async function upload(file: File) {
+    if (busy) return;
+    setUploadError("");
     setBusy(true);
     const body = new FormData();
     body.append("file", file);
@@ -401,53 +509,67 @@ function PositionEditor({
         method: "POST",
         body,
       });
-      toast(t("Hujjat yuklandi"));
+      toast(t("Dalil qo‘shildi"));
       onSaved();
     } catch (error) {
-      toast((error as Error).message, "error");
+      setUploadError((error as Error).message);
     } finally {
       setBusy(false);
     }
   }
   return (
     <>
-      <section className="panel workbench-panel">
-        <div className="section-heading">
+      <section className="panel workbench-panel party-position-panel">
+        {!party && <div className="section-heading">
           <div>
             <h2>
-              <LocalizedText>Har bir tarafning o‘z bayoni</LocalizedText>
-            </h2>
-            <p>
               <LocalizedText>
-                Ochiq ma’lumotlar ikkala tarafga ko‘rinadi. Maxfiy bayon
-                o‘zingiz va vakolatli mediator uchun saqlanadi.
+                Taraflarning bayonlari
               </LocalizedText>
-            </p>
+            </h2>
           </div>
           <LockKeyhole size={23} />
-        </div>
-        {isParty(data.case, user.id) ? (
+        </div>}
+        {party ? (
           <form className="form-stack panel-body" onSubmit={save}>
+            {otherStatement && (
+              <details className="friendly-disclosure party-other-statement">
+                <summary><LocalizedText>{owner ? "2-taraf javobi" : "1-taraf nizosi"}</LocalizedText></summary>
+                <p>{otherStatement}</p>
+              </details>
+            )}
             <label>
-              <LocalizedText>Ochiq ma’lumotlar</LocalizedText>
+              <LocalizedText>{owner ? "Vaziyat" : "Javobingiz"}</LocalizedText>
               <textarea
                 required
                 minLength={20}
                 maxLength={10000}
                 rows={5}
                 value={shared}
-                readOnly={["RESOLVED", "CLOSED"].includes(data.case.status)}
-                onChange={(event) => setShared(event.target.value)}
+                readOnly={busy || ["RESOLVED", "CLOSED"].includes(data.case.status)}
+                onChange={(event) => {
+                  setShared(event.target.value);
+                  setSaved(false);
+                }}
+                placeholder={t("Nima bo‘ldi? Nimani so‘rayapsiz?")}
+                aria-describedby="party-statement-hint"
               />
+              <small id="party-statement-hint"><LocalizedText>Ikkinchi taraf ham ko‘radi.</LocalizedText></small>
             </label>
+            <details className="friendly-disclosure party-options">
+              <summary><LocalizedText>Qo‘shimcha</LocalizedText></summary>
+              <div className="party-optional-fields">
             <label>
               <LocalizedText>Maxfiy ma’lumotlar</LocalizedText>
               <textarea
                 maxLength={10000}
                 rows={4}
                 value={confidential}
-                readOnly={["RESOLVED", "CLOSED"].includes(data.case.status)}
-                onChange={(event) => setConfidential(event.target.value)}
+                readOnly={busy || ["RESOLVED", "CLOSED"].includes(data.case.status)}
+                onChange={(event) => {
+                  setConfidential(event.target.value);
+                  setSaved(false);
+                }}
                 placeholder={t(
                   "Faqat o‘zingiz va vakolatli mediator bilan muhokama qilinadigan ma’lumotlar",
                 )}
@@ -461,7 +583,11 @@ function PositionEditor({
                 <input
                   type="checkbox"
                   checked={local}
-                  onChange={(event) => setLocal(event.target.checked)}
+                  disabled={busy}
+                  onChange={(event) => {
+                    setLocal(event.target.checked);
+                    setSaved(false);
+                  }}
                 />
                 <span>
                   <LocalizedText>
@@ -474,7 +600,11 @@ function PositionEditor({
                 <input
                   type="checkbox"
                   checked={external}
-                  onChange={(event) => setExternal(event.target.checked)}
+                  disabled={busy}
+                  onChange={(event) => {
+                    setExternal(event.target.checked);
+                    setSaved(false);
+                  }}
                 />
                 <span>
                   <LocalizedText>
@@ -491,9 +621,17 @@ function PositionEditor({
                 </LocalizedText>
               </small>
             </div>
+              </div>
+            </details>
+            {error && <p className="form-error" role="alert">{error}</p>}
+            {saved && (
+              <p className="party-save-status" role="status">
+                <CheckCircle2 size={18} />
+                <LocalizedText>Saqlandi</LocalizedText>
+              </p>
+            )}
             <Button disabled={busy} type="submit">
-              <Check size={16} />
-              <LocalizedText>Bayon va rozilikni saqlash</LocalizedText>
+              <LocalizedText>{busy ? "Saqlanmoqda..." : "Saqlash"}</LocalizedText>
             </Button>
           </form>
         ) : (
@@ -527,26 +665,46 @@ function PositionEditor({
           </div>
         )}
       </section>
-      <section className="panel workbench-panel">
+      <section className="panel workbench-panel party-evidence-panel">
         <div className="section-heading">
           <div>
             <h2>
-              <LocalizedText>Ariza va dalillar</LocalizedText>
+              <LocalizedText>Dalillar</LocalizedText>
             </h2>
-            <p>
-              <LocalizedText>
-                PDF, DOCX, TXT, JPG, PNG · 10 MB gacha
-              </LocalizedText>
-            </p>
           </div>
-          <UploadCloud size={22} />
         </div>
         <div className="panel-body form-stack">
+          <input
+            ref={fileInput}
+            hidden
+            type="file"
+            disabled={busy}
+            aria-label={t("Dalil qo‘shish")}
+            accept=".pdf,.docx,.txt,.png,.jpg,.jpeg"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void upload(file);
+              event.target.value = "";
+            }}
+          />
+          <Button type="button" variant="outline" disabled={busy} onClick={() => fileInput.current?.click()}>
+            <Plus size={18} aria-hidden="true" />
+            <LocalizedText>{busy ? "Yuklanmoqda..." : "Dalil qo‘shish"}</LocalizedText>
+          </Button>
+          <small>
+            <LocalizedText>{visibility === "PARTIES" ? "Ikkala taraf va mediator ko‘radi. 10 MB gacha." : "Faqat siz va mediator ko‘radi. 10 MB gacha."}</LocalizedText>
+          </small>
+          {uploadError && <p className="form-error" role="alert">{uploadError}</p>}
+          <EvidenceList data={data} onSaved={onSaved} />
+          <details className="friendly-disclosure evidence-upload-settings">
+            <summary><LocalizedText>Sozlamalar</LocalizedText></summary>
+            <div className="party-optional-fields">
           <div className="form-two-cols">
             <label>
               <LocalizedText>Hujjat turi</LocalizedText>
               <select
                 value={kind}
+                disabled={busy}
                 onChange={(event) => setKind(event.target.value)}
               >
                 <option value="APPLICATION">{t("Ariza yoki bayon")}</option>
@@ -554,7 +712,7 @@ function PositionEditor({
               </select>
             </label>
             <label>
-              <LocalizedText>Hujjatni kim ko‘radi?</LocalizedText>
+              <LocalizedText>Yangi dalilni kim ko‘radi?</LocalizedText>
               <select
                 value={visibility}
                 disabled={busy}
@@ -567,20 +725,8 @@ function PositionEditor({
               </select>
             </label>
           </div>
-          <label>
-            <LocalizedText>Fayl yuklash</LocalizedText>
-            <input
-              type="file"
-              disabled={busy}
-              accept=".pdf,.docx,.txt,.png,.jpg,.jpeg"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void upload(file);
-                event.target.value = "";
-              }}
-            />
-          </label>
-          <EvidenceList data={data} onSaved={onSaved} />
+            </div>
+          </details>
         </div>
       </section>
     </>
@@ -613,7 +759,7 @@ function EvidenceList({
     }
   }
   return (
-    <div className="evidence-inventory">
+    <div className="evidence-inventory" aria-live="polite">
       {data.case.documents.length ? (
         data.case.documents.map((document) => (
           <article className="evidence-item" key={document.id}>
@@ -624,10 +770,7 @@ function EvidenceList({
                 <small>
                   {document.visibility === "PARTIES"
                     ? t("Taraflarga ochiq")
-                    : t("Maxfiy hujjat")}{" "}
-                  <LocalizedText>· </LocalizedText>
-                  {Math.ceil(document.size / 1024)}{" "}
-                  <LocalizedText>KB</LocalizedText>
+                    : t("Maxfiy hujjat")}
                 </small>
               </div>
               <a
@@ -636,7 +779,11 @@ function EvidenceList({
               >
                 <Download size={18} />
               </a>
-              {(document.uploadedBy === user.id || data.canMediate) && (
+            </div>
+            {(document.uploadedBy === user.id || data.canMediate || document.extraction) && (
+              <details className="evidence-analysis">
+                <summary><LocalizedText>Tahlil</LocalizedText></summary>
+                {(document.uploadedBy === user.id || data.canMediate) && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -645,19 +792,18 @@ function EvidenceList({
                 >
                   {busy === document.id
                     ? t("Tahlil qilinmoqda...")
-                    : t("Matn va dalillarni ajratish")}
+                    : t("Matnni ajratish")}
                 </Button>
-              )}
-            </div>
+                )}
             {document.extraction && (
-              <details>
-                <summary>
+              <div>
+                <p>
                   <LocalizedText>
                     Ajratilgan ma’lumotlarni ko‘rish
                   </LocalizedText>{" "}
                   <LocalizedText>·</LocalizedText>{" "}
                   {document.extraction.provider} {document.extraction.model}
-                </summary>
+                </p>
                 <p className="extracted-text">
                   {document.extraction.text ||
                     t("Matn ajratilmadi. Mediator tekshiruvi kerak.")}
@@ -682,13 +828,15 @@ function EvidenceList({
                     {warning}
                   </p>
                 ))}
+              </div>
+            )}
               </details>
             )}
           </article>
         ))
       ) : (
         <p>
-          <LocalizedText>Hujjatlar hali yuklanmagan.</LocalizedText>
+          <LocalizedText>Dalil qo‘shilmagan.</LocalizedText>
         </p>
       )}
     </div>
@@ -1102,6 +1250,13 @@ function AgreementWorkspace({
   const [kind, setKind] = useState<"PROCEDURE" | "SETTLEMENT">(
     data.case.mediation?.procedureDocumentId ? "SETTLEMENT" : "PROCEDURE",
   );
+  if (!data.canMediate && data.agreements.length === 0)
+    return (
+      <section className="panel workbench-waiting">
+        <h2><LocalizedText>Kelishuv hujjati kutilmoqda</LocalizedText></h2>
+        <p><LocalizedText>Mediator tayyorlagan hujjat shu yerda ochiladi. Uni o‘qib, keyin imzolashingiz mumkin.</LocalizedText></p>
+      </section>
+    );
   return (
     <>
       <section className="panel workbench-panel">

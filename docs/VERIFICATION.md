@@ -143,3 +143,11 @@ Jonli huquqiy qidiruv va sud materiallari qamrovi [yordamçi manbalari](ASSISTAN
 - Sakkiz slaydli PPTX, sakkiz sahifali taqdimot PDF va sakkiz sahifali platforma PDF qayta çiqarildi. Harflar, sahifalar, diagrammalar, havolalar va public nusxalarning xeşlari tekşirildi.
 - GitHub tekşiruvida kod repozitoriysi public holatda ekanligi aniqlandi. Avvalgi topshiriqqa muvofiq u private holatiga qaytarildi. Taqdimot repozitoriysi public holatda.
 - Yangi production yiğmasi 2345 va 2346 portlariga joylandi. Lokal sahifalar va ngrok’dagi HTTPS sahifa 200 javob berdi. Uçala manzilda yangi logo va sarlavha, nol brauzer xatosi tasdiqlandi.
+
+## Töliq GitHub relizi, 2026-yil 24-noyabr
+
+- Asosiy HEAD nusxasida 66 ta, nashrga tayyorlangan nusxada 69 ta regressiya testi ötdi. Yangi testlar 2-taraf taklif havolasi, saqlangan beş bosqiçli qoralamani uç bosqiçli formaga tiklaş va ixtiyoriy sarlavhani qamraydi.
+- TypeScript va ESLint tekşiruvlari xatosiz yakunlandi. Production build alohida işçi katalogda ötdi.
+- Case entry, iş maydoni, ulaniş qismlari va CSS böyiça tört mustaqil kod körigi bloklovçi xavfsizlik yoki mantiq xatosi topmadi.
+- `npm audit --omit=dev` 0 zaiflik qaytardi. Nashr fayllari va ZIP, DOCX, PPTX arxivlarining matnli tarkibi tekşirildi, runtime credential qiymatlari topilmadi.
+- 29 ta yuklama uçun SHA-256 qiymatlari tayyorlandi. Videolar, subtitrlar, taqdimotlar, hujjat namunalari va sinov dalillari [reliz sahifasida](https://github.com/Albeerte/kelishuv-ai/releases/tag/project-complete-2026-11-24) jamlangan.

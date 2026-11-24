@@ -158,9 +158,11 @@ type Dossier = {
 export function CaseMediationPanel({
   record,
   mediator,
+  showStatement = true,
 }: {
   record: CaseRecord;
   mediator: Mediator | null;
+  showStatement?: boolean;
 }) {
   const { user, demo } = useProfile();
   const { toast, refresh } = useUI();
@@ -458,7 +460,7 @@ export function CaseMediationPanel({
             ))}
           </div>
         )}
-        {party && !owner && !finished && (
+        {showStatement && party && !owner && !finished && (
           <form
             className="form-stack respondent-statement"
             onSubmit={(event) => {
@@ -1114,8 +1116,13 @@ export function InvitationPage({ token }: { token: string }) {
   }>("/api/auth/me");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const participantProfile =
+    profile.data && (!profile.data.demo || profile.data.user.id === "demo-respondent")
+      ? profile.data
+      : null;
   const next = encodeURIComponent(`/invite/${token}`);
   async function join() {
+    if (busy) return;
     setBusy(true);
     setError("");
     try {
@@ -1143,8 +1150,9 @@ export function InvitationPage({ token }: { token: string }) {
         ) : (
           <>
             <h1>
-              <LocalizedText>Mediatsiyaga taklif</LocalizedText>
+              <LocalizedText>2-taraf sifatida javob berish</LocalizedText>
             </h1>
+            <p><LocalizedText>Taklifni qabul qiling, 1-taraf murojaatini o‘qing va o‘z javobingizni yozing.</LocalizedText></p>
             <p>
               {preview.data.number} <LocalizedText>· </LocalizedText>
               <LocalizedText>{TYPE_LABELS[preview.data.type]}</LocalizedText>
@@ -1165,34 +1173,17 @@ export function InvitationPage({ token }: { token: string }) {
               <LocalizedText>Amal qilish muddati · </LocalizedText>
               {fullDate(preview.data.expiresAt)}
             </small>
-            {profile.data ? (
+            {participantProfile ? (
               <div className="form-stack">
                 <p className="info-note">
                   <LocalizedText>Joriy hisob · </LocalizedText>
-                  {profile.data.user.phone || profile.data.user.email}
+                  {participantProfile.user.phone || participantProfile.user.email}
                 </p>
                 <Button disabled={busy} onClick={join}>
                   <LocalizedText>{busy
                     ? "Ochilmoqda..."
-                    : "Ikkinchi taraf sifatida qo‘shilish"}</LocalizedText>
+                    : "Murojaatni ochish va javob yozish"}</LocalizedText>
                 </Button>
-                {profile.data.demo && profile.data.localDemo && (
-                  <Button
-                    variant="outline"
-                    disabled={busy}
-                    onClick={async () => {
-                      await api("/api/auth/demo", {
-                        method: "POST",
-                        body: JSON.stringify({ role: "RESPONDENT" }),
-                      });
-                      window.location.reload();
-                    }}
-                  >
-                    <LocalizedText>
-                      Ikkinchi taraf namuna hisobiga o‘tish
-                    </LocalizedText>
-                  </Button>
-                )}
               </div>
             ) : (
               <p>
@@ -1203,13 +1194,40 @@ export function InvitationPage({ token }: { token: string }) {
               </p>
             )}
             <div className="invitation-auth-links">
-              <Link href={`/auth/login?next=${next}`}>
-                <LocalizedText>Hisobga kirish</LocalizedText>
-              </Link>
-              <Link href={`/auth/register?next=${next}`}>
-                <LocalizedText>Ro‘yxatdan o‘tish</LocalizedText>
-              </Link>
+              <Button variant="outline" asChild><Link href={`/auth/login?next=${next}`}>
+                <LocalizedText>{participantProfile ? "Boshqa hisobga kirish" : "Hisobim bor — kirish"}</LocalizedText>
+              </Link></Button>
+              <Button variant="outline" asChild><Link href={`/auth/register?next=${next}`}>
+                <LocalizedText>Yangi hisob yaratish</LocalizedText>
+              </Link></Button>
             </div>
+            {profile.data?.demo && profile.data.localDemo && !participantProfile && (
+              <details className="friendly-disclosure">
+                <summary><LocalizedText>Namuna hisobida sinash</LocalizedText></summary>
+                <div className="party-optional-fields">
+                  <Button
+                    variant="outline"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      setError("");
+                      try {
+                        await api("/api/auth/demo", {
+                          method: "POST",
+                          body: JSON.stringify({ role: "RESPONDENT" }),
+                        });
+                        window.location.reload();
+                      } catch (error) {
+                        setError((error as Error).message);
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    <LocalizedText>Ikkinchi taraf namuna hisobiga o‘tish</LocalizedText>
+                  </Button>
+                </div>
+              </details>
+            )}
             {error && (
               <p className="form-error" role="alert">
                 {error}
